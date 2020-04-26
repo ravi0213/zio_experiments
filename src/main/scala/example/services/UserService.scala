@@ -7,25 +7,25 @@ import zio._
 
 package object user {
   object Errors {
-    trait UserServiceError
+    sealed trait UserServiceError
     object UserServiceError {
-      trait GetError extends UserServiceError
-      trait CreateError extends UserServiceError
+      sealed trait GetError extends UserServiceError
+      sealed trait CreateError extends UserServiceError
     }
   }
 
   import Errors.UserServiceError._
 
   import scala.util.Random
-  type UserService = Has[UserService.Service]
+  type UserService = Has[UserService.Service[IO]]
 
   object UserService extends Serializable {
-    trait Service extends Serializable {
-      def get(id: String): IO[GetError, Option[User]]
-      def create(name: String): IO[CreateError, String]
+    trait Service[F[_, _]] extends Serializable {
+      def get(id: String): F[GetError, Option[User]]
+      def create(name: String): F[CreateError, String]
     }
     object Service {
-      val live: Service = new Service {
+      val live: Service[IO] = new Service[IO] {
         private val users = Map.empty[String, User]
 
         final def get(id: String): ZIO[Any, GetError, Option[User]] =
@@ -46,8 +46,8 @@ package object user {
       }
     }
 
-    val any: ZLayer[Service, Nothing, Service] =
-      ZLayer.requires[Service]
+    val any: ZLayer[Service[IO], Nothing, Service[IO]] =
+      ZLayer.requires[Service[IO]]
 
     val live: Layer[Nothing, UserService] =
       ZLayer.succeed(Service.live)

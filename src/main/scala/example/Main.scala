@@ -33,14 +33,11 @@ object Main extends App {
     for {
       _ <- putStrLn("Hello! What is your name?")
       name <- getStrLn.mapError(ProgramError.ConsoleError)
-      //id <- createUser(name).mapError(ProgramError.UserError)
+      id <- createUser(name).mapError(ProgramError.UserError)
       dateTime <- currentDateTime.mapError(ProgramError.ClockError)
-      //user <- getUser(id).mapError(ProgramError.UserError)
-      //_ <- putStrLn(
-      //  s"Hello, ${user.map(_.name).getOrElse("Couldn't retrive user")}, welcome to ZIO! It's ${dateTime}"
-      //)
+      user <- getUser(id).mapError(ProgramError.UserError)
       _ <- putStrLn(
-        s"Hello, $name, welcome to ZIO! It's ${dateTime}"
+        s"Hello, ${user.map(_.name).getOrElse("Couldn't retrive user")}, welcome to ZIO! It's ${dateTime}"
       )
     } yield ()
 }
