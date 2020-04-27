@@ -18,10 +18,8 @@ package object log {
         ZLayer.fromFunction(console =>
           new Service {
             def info(s: String): UIO[Unit] = console.get.putStrLn(s"info - $s")
-            def error(s: String): UIO[Unit] =
-              console.get.putStrLn(s"error - $s")
-            def debug(s: String): UIO[Unit] =
-              console.get.putStrLn(s"debug - $s")
+            def error(s: String): UIO[Unit] = console.get.putStrLn(s"error - $s")
+            def debug(s: String): UIO[Unit] = console.get.putStrLn(s"debug - $s")
           }
         )
     }
