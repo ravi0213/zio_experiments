@@ -3,7 +3,6 @@ package example.programs
 import java.io.IOException
 import java.time.DateTimeException
 
-import example.effects.log._
 import example.services.users.UserService
 import zio._
 import zio.clock._
@@ -11,7 +10,7 @@ import zio.console._
 import zio.random._
 
 object UserProgram {
-  type ProgramEnv = Clock with Console with Random with Logging
+  type ProgramEnv = Clock with Console with Random
 
   trait ProgramError
   object ProgramError {
