@@ -1,7 +1,7 @@
 package example.modules
 
-import example.services.user._
+import example.services._
 
 object Services {
-  val userService = UserService.Service.live
+  val userService = UserService.logging(UserService.live)
 }
