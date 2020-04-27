@@ -19,7 +19,7 @@ object Logging {
         underlying
           .get(id)
           .foldM(
-            e => error(s"Couldn't get user with id $id. error: $e") *> ZIO.fail(e),
+            e => error(e)(s"Couldn't get user with id $id. error: $e") *> ZIO.fail(e),
             user => debug(s"Successfully got user $user") *> UIO.succeed(user)
           )
 
@@ -32,7 +32,8 @@ object Logging {
           .create(id, name, createdAt)
           .foldM(
             e =>
-              error(s"Couldn't create user with id $id and name $name. error: $e") *> ZIO.fail(e),
+              error(e)(s"Couldn't create user with id $id and name $name. error: $e") *> ZIO
+                .fail(e),
             u => debug(s"Successfully created user with id $id") *> UIO.succeed(u)
           )
     }
