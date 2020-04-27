@@ -4,7 +4,7 @@ import java.io.IOException
 import java.time.DateTimeException
 
 import example.effects.log._
-import example.services.UserService
+import example.services.users.UserService
 import zio._
 import zio.clock._
 import zio.console._
