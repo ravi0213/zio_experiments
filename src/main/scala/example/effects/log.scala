@@ -26,8 +26,8 @@ package object log {
         )
     }
 
-    val live: ZLayer[Console, Nothing, Logging] =
-      Service.consoleLogger
+    val consoleLogger: ZLayer[Any, Nothing, Logging] =
+      Console.live >>> Service.consoleLogger
   }
 
   def info(s: String): ZIO[Logging, Nothing, Unit] =
