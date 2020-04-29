@@ -2,7 +2,6 @@ import sbt._
 
 object Dependencies {
   object Versions {
-    val datadog = "0.49.0"
     val jaeger = "1.2.0"
     val opentracing = "0.33.0"
     val zio = "1.0.0-RC18-2"
@@ -16,7 +15,6 @@ object Dependencies {
     val kindProjector = "0.11.0"
   }
   lazy val openTracing = Seq(
-    "com.datadoghq" % "dd-trace-ot" % Versions.datadog,
     "io.opentracing" % "opentracing-api" % Versions.opentracing,
     "io.opentracing" % "opentracing-mock" % Versions.opentracing,
     //"dev.zio" %% "zio-opentelemetry" % Versions.zioTelemetry
