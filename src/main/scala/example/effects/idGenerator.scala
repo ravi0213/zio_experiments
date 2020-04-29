@@ -2,7 +2,6 @@ package example.effects
 
 import example.domain.User
 import zio._
-import zio.random._
 
 package object idGenerator {
   type IdGenerator = Has[IdGenerator.Service]
@@ -13,16 +12,14 @@ package object idGenerator {
     }
 
     object Service {
-      val live: ZLayer[Random, Nothing, IdGenerator] =
-        ZLayer.fromFunction(random =>
-          new Service {
-            val userId = random.get.nextLong(1000000000).map(id => User.Id(s"user_$id"))
-          }
-        )
+      val live =
+        new Service {
+          val userId = UIO(java.util.UUID.randomUUID.toString).map(id => User.Id(s"user_$id"))
+        }
     }
 
     val live: ZLayer[Any, Nothing, IdGenerator] =
-      Random.live >>> Service.live
+      ZLayer.succeed(Service.live)
   }
 
   val userId: ZIO[IdGenerator, Nothing, User.Id] =
