@@ -2,6 +2,7 @@ package example.modules
 
 import example.config.AppConfig
 import example.config.TelemetryConfig.TracerConfig
+import example.effects.idGenerator._
 import example.effects.log._
 import example.telemetry.Tracer
 import zio.clock._
@@ -16,6 +17,6 @@ class Programs(config: AppConfig) {
   }
   private val defaultEnv = Clock.live ++ Console.live ++ Random.live
   val userProgramEnv =
-    defaultEnv ++ Logging.consoleLogger ++ (Clock.live >>> OpenTracing.live(tracer))
+    defaultEnv ++ Logging.consoleLogger ++ (Clock.live >>> OpenTracing.live(tracer)) ++ IdGenerator.live
 
 }

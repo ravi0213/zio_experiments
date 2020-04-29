@@ -1,7 +1,5 @@
 package example.services.users.interpreters
 
-import java.time.OffsetDateTime
-
 import example.domain.User
 import example.services.users.UserService
 import example.services.users.UserService.Error._
@@ -15,19 +13,17 @@ object Tracing {
       type Env = underlying.Env with OpenTracing
 
       final def get(
-          id: Long
+          id: User.Id
       ): ZIO[Env, GetError, Option[User]] =
         underlying
           .get(id)
           .span("UserService - Get User")
 
       final def create(
-          id: Long,
-          name: String,
-          createdAt: OffsetDateTime
-      ): ZIO[Env, CreateError, Unit] =
+          name: String
+      ): ZIO[Env, CreateError, User] =
         underlying
-          .create(id, name, createdAt)
+          .create(name)
           .span("UserService - Create User")
     }
 }

@@ -1,14 +1,12 @@
 package example.services.users
 
-import java.time.OffsetDateTime
-
 import example.domain.User
 import UserService.Error._
 
 trait UserService[F[_, _, _]] extends Serializable {
   type Env
-  def get(id: Long): F[Env, GetError, Option[User]]
-  def create(id: Long, name: String, createdAt: OffsetDateTime): F[Env, CreateError, Unit]
+  def get(id: User.Id): F[Env, GetError, Option[User]]
+  def create(name: String): F[Env, CreateError, User]
 }
 object UserService {
   sealed trait Error extends Throwable
@@ -18,6 +16,9 @@ object UserService {
       case class TechnicalError(cause: Throwable) extends GetError
     }
     sealed trait CreateError extends Error
+    object CreateError {
+      case class TechnicalError(cause: Throwable) extends CreateError
+    }
   }
 
   import interpreters._

@@ -1,7 +1,5 @@
 package example.services.users.interpreters
 
-import java.time.OffsetDateTime
-
 import example.domain.User
 import example.effects.log._
 import example.services.users.UserService
@@ -14,7 +12,7 @@ object Logging {
       type Env = underlying.Env with Logging
 
       final def get(
-          id: Long
+          id: User.Id
       ): ZIO[Env, GetError, Option[User]] =
         underlying
           .get(id)
@@ -24,17 +22,15 @@ object Logging {
           )
 
       final def create(
-          id: Long,
-          name: String,
-          createdAt: OffsetDateTime
-      ): ZIO[Env, CreateError, Unit] =
+          name: String
+      ): ZIO[Env, CreateError, User] =
         underlying
-          .create(id, name, createdAt)
+          .create(name)
           .foldM(
             e =>
-              error(e)(s"Couldn't create user with id $id and name $name. error: $e") *> ZIO
+              error(e)(s"Couldn't create user with name $name. error: $e") *> ZIO
                 .fail(e),
-            u => debug(s"Successfully created user with id $id") *> UIO.succeed(u)
+            u => debug(s"Successfully created user with id ${u.id}") *> UIO.succeed(u)
           )
     }
 }
