@@ -23,8 +23,7 @@ object UserProgram {
       userService: UserService[ZIO]
   ): ZIO[userService.Env with ProgramEnv, ProgramError, Unit] =
     for {
-      _ <- putStrLn("Hello! What is your name?")
-      name <- getStrLn.mapError(ProgramError.ConsoleError)
+      name <- IO.succeed("Alex")
       id <- nextLong(1000000000)
       //TODO: use UTC instead of system timezone
       dateTime <- currentDateTime.mapError(ProgramError.ClockError)
