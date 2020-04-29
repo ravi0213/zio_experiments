@@ -2,6 +2,8 @@ package example.programs
 
 import java.io.IOException
 import java.time.DateTimeException
+import java.time.Instant
+import java.time.ZoneOffset
 
 import example.domain.User
 import example.services.users.UserService
@@ -29,22 +31,22 @@ object UserProgram {
       users <- userService.getByName(name).mapError(ProgramError.UserError)
       user <- if (users.isEmpty) userService.create(name).mapError(ProgramError.UserError)
       else ZIO.fail(ProgramError.UserAlreadyExists)
-      _ <- putStrLn(s"Hello, ${user.name}")
     } yield user.id
 
   def getUser(
       userService: UserService[ZIO]
   )(id: User.Id): ZIO[userService.Env with ProgramEnv, ProgramError, Option[User]] =
-    for {
-      user <- userService.get(id).mapError(ProgramError.UserError)
-      _ <- putStrLn(user.map(u => s"Hello, ${u.name}").getOrElse("Oh No"))
-    } yield user
+    userService.get(id).mapError(ProgramError.UserError)
 
   def getAllUsers(
       userService: UserService[ZIO]
   )(): ZIO[userService.Env with ProgramEnv, ProgramError, List[User]] =
-    for {
-      users <- userService.all.mapError(ProgramError.UserError)
-      _ <- ZIO.foreach(users)(u => putStrLn(s"Hello, ${u.name}"))
-    } yield users
+    userService.all.mapError(ProgramError.UserError)
+
+  def getUsersCreatedBefore(
+      userService: UserService[ZIO]
+  )(instant: Instant): ZIO[userService.Env with ProgramEnv, ProgramError, List[User]] =
+    userService.all
+      .mapError(ProgramError.UserError)
+      .map(_.filter(_.createdAt.atZoneSameInstant(ZoneOffset.UTC).toInstant.isBefore(instant)))
 }
