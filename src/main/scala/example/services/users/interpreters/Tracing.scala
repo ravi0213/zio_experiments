@@ -12,12 +12,21 @@ object Tracing {
     new UserService[ZIO] {
       type Env = underlying.Env with OpenTracing
 
+      final def all: ZIO[Env, GetError, List[User]] =
+        underlying.all
+          .span("UserService - Get All Users")
+
       final def get(
           id: User.Id
       ): ZIO[Env, GetError, Option[User]] =
         underlying
           .get(id)
           .span("UserService - Get User")
+
+      final def getByName(name: String): ZIO[Env, GetByNameError, List[User]] =
+        underlying
+          .getByName(name)
+          .span("UserService - Get User By Name")
 
       final def create(
           name: String

@@ -1,6 +1,7 @@
 package example
 
 import example.config.AppConfig
+import example.domain.User
 import example.modules.Programs
 import example.modules.Services._
 import example.programs.UserProgram
@@ -13,15 +14,25 @@ object Main extends App {
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
     val config = AppConfig.live
     val programs = new Programs(config)
-    val createUserProgram: String => ZIO[userService.Env with ProgramEnv, ProgramError, Unit] =
+    val createUserProgram: String => ZIO[userService.Env with ProgramEnv, ProgramError, User.Id] =
       UserProgram.createUser(userService)
-    val program = (for {
-      _ <- createUserProgram("Alex").span("User Program - Root Span")
-      _ <- createUserProgram("John").span("User Program - Root Span")
-      _ <- createUserProgram("Valentin").span("User Program - Root Span")
-    } yield ())
+    val getUserProgram
+        : User.Id => ZIO[userService.Env with ProgramEnv, ProgramError, Option[User]] =
+      UserProgram.getUser(userService)
+
+    val allUsersProgram: () => ZIO[userService.Env with ProgramEnv, ProgramError, List[User]] =
+      UserProgram.getAllUsers(userService)
+
+    val program = for {
+      _ <- createUserProgram("Alex").span("User Program - create user")
+      _ <- createUserProgram("John").span("User Program - create user")
+      id <- createUserProgram("Valentin").span("User Program - create user")
+      _ <- getUserProgram(id).span("User Program - get user")
+      _ <- allUsersProgram()
+    } yield ()
+    program
       .provideLayer(programs.userProgramEnv)
-    program.fold(_ => 1, _ => 0)
+      .fold(_ => 1, _ => 0)
   }
 
 }

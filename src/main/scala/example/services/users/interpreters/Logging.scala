@@ -11,6 +11,13 @@ object Logging {
     new UserService[ZIO] {
       type Env = underlying.Env with Logging
 
+      final def all: ZIO[Env, GetError, List[User]] =
+        underlying.all
+          .foldM(
+            e => error(e)(s"Couldn't get all users. error: $e") *> ZIO.fail(e),
+            users => debug(s"Successfully got users $users") *> UIO.succeed(users)
+          )
+
       final def get(
           id: User.Id
       ): ZIO[Env, GetError, Option[User]] =
@@ -18,6 +25,14 @@ object Logging {
           .get(id)
           .foldM(
             e => error(e)(s"Couldn't get user with id $id. error: $e") *> ZIO.fail(e),
+            user => debug(s"Successfully got user $user") *> UIO.succeed(user)
+          )
+
+      final def getByName(name: String): ZIO[Env, GetByNameError, List[User]] =
+        underlying
+          .getByName(name)
+          .foldM(
+            e => error(e)(s"Couldn't get user with name $name. error: $e") *> ZIO.fail(e),
             user => debug(s"Successfully got user $user") *> UIO.succeed(user)
           )
 

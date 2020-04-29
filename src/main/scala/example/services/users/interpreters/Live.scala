@@ -15,8 +15,16 @@ object Live {
 
     private val users = Map.empty[User.Id, User]
 
+    final def all: IO[GetError, List[User]] =
+      IO.succeed(users.values.toList)
+
     final def get(id: User.Id): IO[GetError, Option[User]] =
       IO.succeed(users.get(id))
+
+    final def getByName(name: String): IO[GetByNameError, List[User]] =
+      IO.succeed(users.collect {
+        case (_, user) if user.name.equals(name) => user
+      }.toList)
 
     final def create(name: String): ZIO[Env, CreateError, User] =
       for {
