@@ -6,7 +6,6 @@ object Dependencies {
     val opentracing = "0.33.0"
     val zio = "1.0.0-RC18-2"
     val zioOpenTracing = "0.3.0"
-    val zioTelemetry = "0.1.0"
     val zipkin = "2.12.3"
 
     val scalaTest = "3.1.1"
@@ -17,7 +16,6 @@ object Dependencies {
   lazy val openTracing = Seq(
     "io.opentracing" % "opentracing-api" % Versions.opentracing,
     "io.opentracing" % "opentracing-mock" % Versions.opentracing,
-    //"dev.zio" %% "zio-opentelemetry" % Versions.zioTelemetry
     "dev.zio" %% "zio-opentracing" % Versions.zioOpenTracing
   )
 
