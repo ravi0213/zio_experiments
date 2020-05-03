@@ -1,7 +1,5 @@
 package example.services.users.interpreters
 
-import scala.collection.mutable.Map
-
 import example.domain.User
 import example.effects.idGenerator._
 import example.services.users.UserService
@@ -10,29 +8,37 @@ import zio._
 import zio.clock._
 
 object Live {
-  val interpreter = new UserService[ZIO] {
-    type Env = IdGenerator with Clock
+  def interpreter(usersRef: Ref[Map[User.Id, User]]) =
+    new UserService[ZIO] {
+      type Env = IdGenerator with Clock
 
-    private val users = Map.empty[User.Id, User]
+      final def all: IO[GetError, List[User]] =
+        for {
+          users <- usersRef.get
+          result <- IO.succeed(users.values.toList)
+        } yield result
 
-    final def all: IO[GetError, List[User]] =
-      IO.succeed(users.values.toList)
+      final def get(id: User.Id): IO[GetError, Option[User]] =
+        for {
+          users <- usersRef.get
+          result <- IO.succeed(users.get(id))
+        } yield result
 
-    final def get(id: User.Id): IO[GetError, Option[User]] =
-      IO.succeed(users.get(id))
+      final def getByName(name: String): IO[GetByNameError, List[User]] =
+        for {
+          users <- usersRef.get
+          result <- IO.succeed(users.collect {
+            case (_, user) if user.name.equals(name) => user
+          }.toList)
+        } yield result
 
-    final def getByName(name: String): IO[GetByNameError, List[User]] =
-      IO.succeed(users.collect {
-        case (_, user) if user.name.equals(name) => user
-      }.toList)
-
-    final def create(name: String): ZIO[Env, CreateError, User] =
-      for {
-        id <- userId
-        //TODO: use UTC instead of system timezone
-        createdAt <- currentDateTime.mapError(CreateError.TechnicalError)
-        user <- IO.succeed(User(id, name, createdAt))
-        _ <- IO.succeed(users.+=((id, user)))
-      } yield user
-  }
+      final def create(name: String): ZIO[Env, CreateError, User] =
+        for {
+          id <- userId
+          //TODO: use UTC instead of system timezone
+          createdAt <- currentDateTime.mapError(CreateError.TechnicalError)
+          user <- IO.succeed(User(id, name, createdAt))
+          _ <- usersRef.update(_ + (id -> user))
+        } yield user
+    }
 }

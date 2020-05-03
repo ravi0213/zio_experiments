@@ -28,7 +28,9 @@ object UserService {
   }
 
   import interpreters._
-  def live = Live.interpreter
+  import zio._
+  def live(users: Map[User.Id, User] = Map.empty) =
+    Ref.make(users).map(Live.interpreter)
   def logging(underlying: UserService[zio.ZIO]) = Logging.interpreter(underlying)
   def tracing(underlying: UserService[zio.ZIO]) = Tracing.interpreter(underlying)
 }
