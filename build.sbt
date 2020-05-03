@@ -18,4 +18,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++= zio
   )
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+Global / testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
+
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
