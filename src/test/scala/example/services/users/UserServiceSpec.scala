@@ -56,7 +56,7 @@ object UserServiceSpec extends DefaultRunnableSpec {
         }
       ),
       suite("all")(
-        testM("should return the list of users with the corresponding name") {
+        testM("should return the list of all users") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
             val expected = users
             for {
