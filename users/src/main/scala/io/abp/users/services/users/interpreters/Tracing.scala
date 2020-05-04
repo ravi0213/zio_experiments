@@ -1,8 +1,8 @@
-package users.services.users.interpreters
+package io.abp.users.services.users.interpreters
 
-import users.domain.User
-import users.services.users.UserService
-import users.services.users.UserService.Error._
+import io.abp.users.domain.User
+import io.abp.users.services.users.UserService
+import io.abp.users.services.users.UserService.Error._
 import zio._
 import zio.telemetry.opentracing._
 import zio.telemetry.opentracing.OpenTracing

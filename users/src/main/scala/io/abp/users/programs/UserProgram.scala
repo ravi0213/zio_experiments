@@ -1,12 +1,12 @@
-package users.programs
+package io.abp.users.programs
 
 import java.io.IOException
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneOffset
 
-import users.domain.User
-import users.services.users.UserService
+import io.abp.users.domain.User
+import io.abp.users.services.users.UserService
 import zio._
 import zio.console._
 import zio.random._

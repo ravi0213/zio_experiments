@@ -1,10 +1,10 @@
-package users
+package io.abp.users
 
 import java.time.{DateTimeException, OffsetDateTime}
 import java.util.concurrent.TimeUnit
 
-import users.domain.User
-import users.effects.idGenerator._
+import io.abp.users.domain.User
+import io.abp.users.effects.idGenerator._
 import zio._
 import zio.clock._
 import zio.duration.Duration

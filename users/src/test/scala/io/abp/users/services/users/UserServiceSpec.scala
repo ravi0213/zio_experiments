@@ -1,11 +1,11 @@
-package users.services.users
+package io.abp.users.services.users
 
 import java.time.OffsetDateTime
 
-import users.domain.User
-import users.effects.idGenerator._
-import users.generators._
-import users.mocks._
+import io.abp.users.domain.User
+import io.abp.users.effects.idGenerator._
+import io.abp.users.generators._
+import io.abp.users.mocks._
 import zio.test._
 import zio.test.Assertion._
 import zio.test.environment._

@@ -1,9 +1,9 @@
-package users.services.users.interpreters
+package io.abp.users.services.users.interpreters
 
-import users.domain.User
-import users.effects.idGenerator._
-import users.services.users.UserService
-import users.services.users.UserService.Error._
+import io.abp.users.domain.User
+import io.abp.users.effects.idGenerator._
+import io.abp.users.services.users.UserService
+import io.abp.users.services.users.UserService.Error._
 import zio._
 import zio.clock._
 

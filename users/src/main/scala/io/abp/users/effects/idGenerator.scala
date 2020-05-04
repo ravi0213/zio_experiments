@@ -1,6 +1,6 @@
-package users.effects
+package io.abp.users.effects
 
-import users.domain.User
+import io.abp.users.domain.User
 import zio._
 
 package object idGenerator {

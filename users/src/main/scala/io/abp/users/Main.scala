@@ -1,13 +1,13 @@
-package users
+package io.abp.users
 
 import java.time.Instant
 
-import users.config.AppConfig
-import users.domain.User
-import users.modules.Programs
-import users.modules.Services._
-import users.programs.UserProgram
-import users.programs.UserProgram.{ProgramEnv, ProgramError}
+import io.abp.users.config.AppConfig
+import io.abp.users.domain.User
+import io.abp.users.modules.Programs
+import io.abp.users.modules.Services._
+import io.abp.users.programs.UserProgram
+import io.abp.users.programs.UserProgram.{ProgramEnv, ProgramError}
 import zio._
 import zio.clock._
 import zio.console._

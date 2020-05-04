@@ -1,4 +1,4 @@
-package users.effects
+package io.abp.users.effects
 
 import zio._
 

@@ -1,6 +1,6 @@
-package users.config
+package io.abp.users.config
 
-import users.config.TelemetryConfig.TracerConfig
+import io.abp.users.config.TelemetryConfig.TracerConfig
 
 case class AppConfig(telemetry: TelemetryConfig)
 case class TelemetryConfig(enabled: Boolean, tracerConfig: TracerConfig)

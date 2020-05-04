@@ -1,4 +1,4 @@
-package users.domain
+package io.abp.users.domain
 
 import java.time.OffsetDateTime
 

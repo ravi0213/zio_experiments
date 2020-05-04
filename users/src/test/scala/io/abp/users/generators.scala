@@ -1,9 +1,9 @@
-package users
+package io.abp.users
 
 import java.time.OffsetDateTime
 
-import users.domain.User
-import users.effects.idGenerator._
+import io.abp.users.domain.User
+import io.abp.users.effects.idGenerator._
 import zio.random._
 import zio.test._
 import zio.test.Gen._

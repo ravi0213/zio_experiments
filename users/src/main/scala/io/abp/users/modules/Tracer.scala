@@ -1,4 +1,4 @@
-package users.telemetry
+package io.abp.users.telemetry
 
 import io.jaegertracing.Configuration
 import io.jaegertracing.internal.JaegerTracer

@@ -1,6 +1,6 @@
-package users.services.users
+package io.abp.users.services.users
 
-import users.domain.User
+import io.abp.users.domain.User
 import UserService.Error._
 
 trait UserService[F[_, _, _]] extends Serializable {

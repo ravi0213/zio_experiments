@@ -1,10 +1,10 @@
-package users.modules
+package io.abp.users.modules
 
-import users.config.AppConfig
-import users.config.TelemetryConfig.TracerConfig
-import users.effects.idGenerator._
-import users.effects.log._
-import users.telemetry.Tracer
+import io.abp.users.config.AppConfig
+import io.abp.users.config.TelemetryConfig.TracerConfig
+import io.abp.users.effects.idGenerator._
+import io.abp.users.effects.log._
+import io.abp.users.telemetry.Tracer
 import zio.clock._
 import zio.console._
 import zio.random._
