@@ -1,5 +1,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/d102d5cdb2b5a641fa6d/maintainability)](https://codeclimate.com/github/alexbalonperin/zio_experiments/maintainability)
 [![Build Status](https://travis-ci.org/alexbalonperin/zio_experiments.svg?branch=master)](https://travis-ci.org/alexbalonperin/zio_experiments)
+[![codecov](https://codecov.io/gh/alexbalonperin/zio_experiments/branch/master/graph/badge.svg)](https://codecov.io/gh/alexbalonperin/zio_experiments)
+
 
 # ZIO Experiments
 
