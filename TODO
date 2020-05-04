@@ -1,0 +1,7 @@
+- use direnv for config
+- write program tests
+- evaluate zio stm
+- add postgres
+- add gateway to try distributed tracing
+- publish client
+- add proper logging
