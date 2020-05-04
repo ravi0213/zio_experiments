@@ -2,8 +2,8 @@ import Dependencies._
 
 ThisBuild / scalaVersion := "2.13.1"
 ThisBuild / version := "0.1.0-SNAPSHOT"
-ThisBuild / organization := "com.example"
-ThisBuild / organizationName := "example"
+ThisBuild / organization := "com.users"
+ThisBuild / organizationName := "users"
 
 addCompilerPlugin(kindProjector cross CrossVersion.full)
 addCompilerPlugin(betterMonadicFor)
@@ -11,6 +11,13 @@ addCompilerPlugin(betterMonadicFor)
 lazy val root = (project in file("."))
   .settings(
     name := "zio_experiments",
+    skip in publish := true
+  )
+  .aggregate(users)
+
+lazy val users = (project in file("users"))
+  .settings(
+    name := "users",
     resolvers += Resolver.sonatypeRepo("releases"),
     libraryDependencies ++= openTracing,
     libraryDependencies ++= jaegerTracer,

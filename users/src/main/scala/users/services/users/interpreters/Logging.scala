@@ -1,0 +1,51 @@
+package users.services.users.interpreters
+
+import users.domain.User
+import users.effects.log._
+import users.services.users.UserService
+import users.services.users.UserService.Error._
+import zio._
+
+object Logging {
+  def interpreter(underlying: UserService[ZIO]) =
+    new UserService[ZIO] {
+      type Env = underlying.Env with Logging
+
+      final def all: ZIO[Env, GetError, List[User]] =
+        underlying.all
+          .foldM(
+            e => error(e)(s"Couldn't get all users. error: $e") *> ZIO.fail(e),
+            users => debug(s"Successfully got users $users") *> UIO.succeed(users)
+          )
+
+      final def get(
+          id: User.Id
+      ): ZIO[Env, GetError, Option[User]] =
+        underlying
+          .get(id)
+          .foldM(
+            e => error(e)(s"Couldn't get user with id $id. error: $e") *> ZIO.fail(e),
+            user => debug(s"Successfully got user $user") *> UIO.succeed(user)
+          )
+
+      final def getByName(name: String): ZIO[Env, GetByNameError, List[User]] =
+        underlying
+          .getByName(name)
+          .foldM(
+            e => error(e)(s"Couldn't get user with name $name. error: $e") *> ZIO.fail(e),
+            user => debug(s"Successfully got user $user") *> UIO.succeed(user)
+          )
+
+      final def create(
+          name: String
+      ): ZIO[Env, CreateError, User] =
+        underlying
+          .create(name)
+          .foldM(
+            e =>
+              error(e)(s"Couldn't create user with name $name. error: $e") *> ZIO
+                .fail(e),
+            u => debug(s"Successfully created user with id ${u.id}") *> UIO.succeed(u)
+          )
+    }
+}
