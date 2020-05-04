@@ -1,0 +1,24 @@
+# Use Docker-based container (instead of OpenVZ)
+sudo: false
+dist: xenial
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/launchers
+    - $HOME/.cache/coursier/v1
+
+language: scala
+scala:
+  - 2.13.2
+jdk:
+  - openjdk11
+
+script:
+  - git config core.whitespace tab-in-indent,trailing-space,blank-at-eol
+  - git show --oneline --check
+  - sbt "++$TRAVIS_SCALA_VERSION!" clean coverage test coverageReport
+
+before_cache:
+  # Tricks to avoid unnecessary cache updates
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
