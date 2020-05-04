@@ -13,10 +13,18 @@ scala:
 jdk:
   - openjdk11
 
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
 script:
   - git config core.whitespace tab-in-indent,trailing-space,blank-at-eol
   - git show --oneline --check
   - sbt "++$TRAVIS_SCALA_VERSION!" clean coverage test coverageReport
+
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 
 before_cache:
   # Tricks to avoid unnecessary cache updates
