@@ -1,3 +1,5 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/d102d5cdb2b5a641fa6d/maintainability)](https://codeclimate.com/github/alexbalonperin/zio_experiments/maintainability)
+
 # ZIO Experiments
 
 Trying out ZIO
