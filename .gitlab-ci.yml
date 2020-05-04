@@ -3,15 +3,35 @@ image: java:8
 stages:
   - test
 
+variables:
+  SBT_VERSION: "1.3.9"
+  SBT_OPTS: "-Dsbt.global.base=sbt-cache/.sbtboot -Dsbt.boot.directory=sbt-cache/.boot -Dsbt.ivy.home=sbt-cache/.ivy"
+  SBT_CACHE_DIR: "sbt-cache/.ivy/cache"
+
+cache:
+  key: "$CI_BUILD_REF_NAME" # contains either the branch or the tag, so it's caching per branch
+  untracked: true
+  paths:
+    - "apt-cache/"
+    - "sbt-cache/.ivy/cache"
+    - "sbt-cache/.boot"
+    - "sbt-cache/.sbtboot"
+    - "sbt-cache/target"
+
 before_script:
-  - apt-get update -y
-  - apt-get install apt-transport-https -y
-  ## Install SBT
-  - echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
-  - curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | sudo apt-key add
-  - apt-get update -y
-  - apt-get install sbt -y
-  - sbt sbtVersion
+  - export APT_CACHE_DIR=`pwd`/apt-cache
+  - mkdir -pv $APT_CACHE_DIR
+  - ls $APT_CACHE_DIR || echo "no apt-cache dir found"
+  - apt-get -o dir::cache::archives=$APT_CACHE_DIR update -y
+  - apt-get -o dir::cache::archives=$APT_CACHE_DIR install apt-transport-https -y
+  # Install SBT
+  - mkdir -pv $SBT_CACHE_DIR
+  - ls $SBT_CACHE_DIR || echo "no ivy2 cache fir found"
+  - echo "deb http://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list
+  - apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 642AC823
+  - apt-get -o dir::cache::archives=$APT_CACHE_DIR update -y
+  - apt-get -o dir::cache::archives=$APT_CACHE_DIR install sbt -y
+  - sbt -v sbtVersion
 
 test:
   stage: test
