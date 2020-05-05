@@ -5,3 +5,4 @@
 - add gateway to try distributed tracing
 - publish client
 - add proper logging
+- add http api
