@@ -13,9 +13,10 @@ object TelemetryConfig {
 }
 
 object AppConfig {
-  def live = AppConfig(
-    TelemetryConfig(enabled = true, TracerConfig.JaegerConfig("0.0.0.0:9411", "zio-experiments"))
-  )
+  def live =
+    AppConfig(
+      TelemetryConfig(enabled = true, TracerConfig.JaegerConfig("0.0.0.0:9411", "zio-experiments"))
+    )
 
   def mock = AppConfig(TelemetryConfig(enabled = true, TracerConfig.Mock))
 }

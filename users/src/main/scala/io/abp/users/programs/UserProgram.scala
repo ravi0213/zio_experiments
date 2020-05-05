@@ -29,8 +29,9 @@ object UserProgram {
   )(name: String): ZIO[userService.Env with ProgramEnv, ProgramError, User.Id] =
     for {
       users <- userService.getByName(name).mapError(ProgramError.UserError)
-      user <- if (users.isEmpty) userService.create(name).mapError(ProgramError.UserError)
-      else ZIO.fail(ProgramError.UserAlreadyExists)
+      user <-
+        if (users.isEmpty) userService.create(name).mapError(ProgramError.UserError)
+        else ZIO.fail(ProgramError.UserAlreadyExists)
     } yield user.id
 
   def getUser(
