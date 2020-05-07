@@ -2,6 +2,8 @@ import sbt._
 
 object Dependencies {
   object Versions {
+    val circe = "0.13.0"
+    val http4s = "0.21.4"
     val jaeger = "1.2.0"
     val opentracing = "0.33.0"
     val zio = "1.0.0-RC18-2"
@@ -32,6 +34,7 @@ object Dependencies {
 
   lazy val zio = Seq(
     "dev.zio" %% "zio" % Versions.zio,
+    "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC13",
     "dev.zio" %% "zio-test" % Versions.zio % Test,
     "dev.zio" %% "zio-test-sbt" % Versions.zio % Test
   )
@@ -39,6 +42,17 @@ object Dependencies {
   lazy val zipkin = Seq(
     "io.zipkin.reporter2" % "zipkin-reporter" % Versions.zipkin,
     "io.zipkin.reporter2" % "zipkin-sender-okhttp3" % Versions.zipkin
+  )
+
+  lazy val http4s = Seq(
+    "org.http4s" %% "http4s-core" % Versions.http4s,
+    "org.http4s" %% "http4s-blaze-server" % Versions.http4s,
+    "org.http4s" %% "http4s-dsl" % Versions.http4s,
+    "org.http4s" %% "http4s-circe" % Versions.http4s
+  )
+
+  lazy val circe = Seq(
+    "io.circe" %% "circe-generic-extras" % Versions.circe
   )
 
   // Tests

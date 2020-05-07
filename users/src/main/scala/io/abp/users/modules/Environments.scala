@@ -10,7 +10,7 @@ import zio.console._
 import zio.random._
 import zio.telemetry.opentracing.OpenTracing
 
-class Programs(config: AppConfig) {
+class Environments(config: AppConfig) {
   private val tracer = config.telemetry.tracerConfig match {
     case TracerConfig.Mock                            => Tracer.mock
     case TracerConfig.JaegerConfig(host, serviceName) => Tracer.jaeger(host, serviceName)

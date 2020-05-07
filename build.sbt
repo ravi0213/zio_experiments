@@ -5,8 +5,11 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "io.abp"
 ThisBuild / organizationName := "abp"
 
-addCompilerPlugin(kindProjector cross CrossVersion.full)
-addCompilerPlugin(betterMonadicFor)
+git.useGitDescribe := true
+lazy val buildInfoSettings = Seq(
+  buildInfoKeys ++= Seq[BuildInfoKey](git.gitHeadCommit),
+  buildInfoPackage := "io.abp.users"
+)
 
 lazy val root = (project in file("."))
   .settings(
@@ -16,13 +19,19 @@ lazy val root = (project in file("."))
   .aggregate(users)
 
 lazy val users = (project in file("users"))
+  .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "users",
     resolvers += Resolver.sonatypeRepo("releases"),
-    libraryDependencies ++= openTracing,
+    buildInfoSettings,
+    libraryDependencies ++= circe,
+    libraryDependencies ++= http4s,
     libraryDependencies ++= jaegerTracer,
+    libraryDependencies ++= openTracing,
+    libraryDependencies ++= zio,
     libraryDependencies ++= zipkin,
-    libraryDependencies ++= zio
+    addCompilerPlugin(kindProjector cross CrossVersion.full),
+    addCompilerPlugin(betterMonadicFor)
   )
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
