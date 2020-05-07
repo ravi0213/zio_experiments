@@ -10,7 +10,7 @@ import zio.telemetry.opentracing.OpenTracing
 
 package object users {
   type UserService = Has[User.Service]
-  type Env = IdGenerator with Clock with LoggingEffect with OpenTracing with UserService
+  type Env = UserService with IdGenerator with Clock with LoggingEffect with OpenTracing
 
   object User {
     trait Service extends Serializable {
@@ -48,15 +48,15 @@ package object users {
   }
   import User.Error._
 
-  def getUser(id: DUser.Id): ZIO[UserService with Env, GetError, Option[DUser]] =
+  def getUser(id: DUser.Id): ZIO[Env, GetError, Option[DUser]] =
     ZIO.accessM(_.get.get(id))
 
-  def getUsersByName(name: String): ZIO[UserService with Env, GetByNameError, List[DUser]] =
+  def getUsersByName(name: String): ZIO[Env, GetByNameError, List[DUser]] =
     ZIO.accessM(_.get.getByName(name))
 
-  def createUser(name: String): ZIO[UserService with Env, CreateError, DUser] =
+  def createUser(name: String): ZIO[Env, CreateError, DUser] =
     ZIO.accessM(_.get.create(name))
 
-  def allUsers(): ZIO[UserService with Env, GetError, List[DUser]] =
+  def allUsers(): ZIO[Env, GetError, List[DUser]] =
     ZIO.accessM(_.get.all)
 }
