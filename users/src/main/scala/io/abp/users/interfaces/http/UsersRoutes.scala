@@ -3,12 +3,13 @@ package io.abp.users.interfaces.http
 import io.abp.users.domain.User
 import io.abp.users.modules.Environments
 import io.abp.users.programs.UserProgram
+import io.abp.users.programs.UserProgram.ProgramError
 import io.circe.Encoder
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{EntityEncoder, HttpRoutes}
+import org.http4s.{EntityEncoder, HttpRoutes, Response}
 import UsersRoutes._
 import zio._
 import zio.interop.catz._
@@ -19,16 +20,16 @@ class UsersRoutes(
   private val pathPrefix = Root / "users"
   val routes = HttpRoutes.of[AppTask] {
     case GET -> `pathPrefix` =>
-      Ok(
-        UserProgram.getAllUsers
-        //.mapError({
-        //  case ProgramError.UserAlreadyExists => Conflict()
-        //  case ProgramError.UserError(_)      => InternalServerError()
-        //  case ProgramError.ConsoleError(_)   => InternalServerError()
-        //  case ProgramError.ClockError(_)     => InternalServerError()
-        //})
-          .provideLayer(envs.userProgramEnv)
-      )
+      UserProgram.getAllUsers
+        .provideLayer(envs.userProgramEnv)
+        .foldM(errorHandler, Ok(_))
+  }
+
+  private def errorHandler: ProgramError => AppTask[Response[AppTask]] = {
+    case ProgramError.UserAlreadyExists => Conflict()
+    case ProgramError.UserError(_)      => InternalServerError()
+    case ProgramError.ConsoleError(_)   => InternalServerError()
+    case ProgramError.ClockError(_)     => InternalServerError()
   }
 }
 
