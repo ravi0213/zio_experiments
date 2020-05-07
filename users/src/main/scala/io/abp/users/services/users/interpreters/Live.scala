@@ -2,16 +2,15 @@ package io.abp.users.services.users.interpreters
 
 import io.abp.users.domain.User
 import io.abp.users.effects.idGenerator._
-import io.abp.users.services.users.UserService
-import io.abp.users.services.users.UserService.Error._
+import io.abp.users.services.users._
+import io.abp.users.services.users.User.Error._
+import io.abp.users.services.users.User.Service
 import zio._
 import zio.clock._
 
 object Live {
   def interpreter(usersRef: Ref[Map[User.Id, User]]) =
-    new UserService[ZIO] {
-      type Env = IdGenerator with Clock
-
+    new Service {
       final def all: IO[GetError, List[User]] =
         for {
           users <- usersRef.get

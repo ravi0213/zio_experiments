@@ -12,17 +12,18 @@ object Main extends App {
     val config = AppConfig.live
     val envs = new Environments(config)
 
-    runApplication(config)
+    runApplication(config, envs)
       .provideCustomLayer(envs.userProgramEnv)
       .fold(_ => 1, _ => 0)
   }
 
   private def runApplication(
-      config: AppConfig
+      config: AppConfig,
+      envs: Environments
   ): ZIO[ZEnv with Logging, Throwable, Unit] = {
     info("Application resources loaded, running Application") *>
       Server
-        .serve(config.api)
+        .serve(config.api, envs)
         .onError {
           case e =>
             error(e)("Couldn't start the application")

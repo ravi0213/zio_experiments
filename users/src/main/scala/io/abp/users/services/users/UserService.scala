@@ -1,36 +1,62 @@
-package io.abp.users.services.users
+package io.abp.users.services
 
-import io.abp.users.domain.User
-import UserService.Error._
+import io.abp.users.domain.{User => DUser}
+import io.abp.users.effects.idGenerator.IdGenerator
+import io.abp.users.effects.log.{Logging => LoggingEffect}
+import users.User.Error._
+import zio._
+import zio.clock.Clock
+import zio.telemetry.opentracing.OpenTracing
 
-trait UserService[F[_, _, _]] extends Serializable {
-  type Env
-  def all: F[Env, GetError, List[User]]
-  def get(id: User.Id): F[Env, GetError, Option[User]]
-  def getByName(name: String): F[Env, GetByNameError, List[User]]
-  def create(name: String): F[Env, CreateError, User]
-}
-object UserService {
-  sealed trait Error extends Throwable
-  object Error {
-    sealed trait GetError extends Error
-    object GetError {
-      case class TechnicalError(cause: Throwable) extends GetError
+package object users {
+  type UserService = Has[User.Service]
+  type Env = IdGenerator with Clock with LoggingEffect with OpenTracing with UserService
+
+  object User {
+    trait Service extends Serializable {
+      def all: ZIO[Env, GetError, List[DUser]]
+      def get(id: DUser.Id): ZIO[Env, GetError, Option[DUser]]
+      def getByName(name: String): ZIO[Env, GetByNameError, List[DUser]]
+      def create(name: String): ZIO[Env, CreateError, DUser]
     }
-    sealed trait GetByNameError extends Error
-    object GetByNameError {
-      case class TechnicalError(cause: Throwable) extends GetByNameError
+    sealed trait Error extends Throwable
+    object Error {
+      sealed trait GetError extends Error
+      object GetError {
+        case class TechnicalError(cause: Throwable) extends GetError
+      }
+      sealed trait GetByNameError extends Error
+      object GetByNameError {
+        case class TechnicalError(cause: Throwable) extends GetByNameError
+      }
+      sealed trait CreateError extends Error
+      object CreateError {
+        case class TechnicalError(cause: Throwable) extends CreateError
+      }
     }
-    sealed trait CreateError extends Error
-    object CreateError {
-      case class TechnicalError(cause: Throwable) extends CreateError
-    }
+
+    import interpreters._
+
+    def live(users: Map[DUser.Id, DUser] = Map.empty): ZLayer[Any, Nothing, UserService] =
+      ZLayer.fromEffect(Ref.make(users).map(Live.interpreter))
+
+    def logging(underlying: Layer[Nothing, UserService]): ZLayer[Any, Nothing, UserService] =
+      (underlying ++ LoggingEffect.consoleLogger) >>> ZLayer.succeed(Logging.interpreter)
+
+    def tracing(underlying: Layer[Nothing, UserService]): ZLayer[Any, Nothing, UserService] =
+      (underlying ++ LoggingEffect.consoleLogger) >>> ZLayer.succeed(Logging.interpreter)
   }
+  import User.Error._
 
-  import interpreters._
-  import zio._
-  def live(users: Map[User.Id, User] = Map.empty) =
-    Ref.make(users).map(Live.interpreter)
-  def logging(underlying: UserService[zio.ZIO]) = Logging.interpreter(underlying)
-  def tracing(underlying: UserService[zio.ZIO]) = Tracing.interpreter(underlying)
+  def getUser(id: DUser.Id): ZIO[UserService with Env, GetError, Option[DUser]] =
+    ZIO.accessM(_.get.get(id))
+
+  def getUsersByName(name: String): ZIO[UserService with Env, GetByNameError, List[DUser]] =
+    ZIO.accessM(_.get.getByName(name))
+
+  def createUser(name: String): ZIO[UserService with Env, CreateError, DUser] =
+    ZIO.accessM(_.get.create(name))
+
+  def allUsers(): ZIO[UserService with Env, GetError, List[DUser]] =
+    ZIO.accessM(_.get.all)
 }
