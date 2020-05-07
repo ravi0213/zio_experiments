@@ -13,6 +13,7 @@ import zio.test._
 import zio.test.Assertion._
 import zio.test.environment._
 import zio.test.Gen._
+import zio.ZIO
 
 object UserServiceSpec extends DefaultRunnableSpec {
   val fixedUserId = User.Id("user_dbe1bc85-7f06-404e-ac8c-ae6661ff2bb6")
@@ -60,11 +61,12 @@ object UserServiceSpec extends DefaultRunnableSpec {
       suite("all")(
         testM("should return the list of all users") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
-            val expected = users
-            allUsers
-              .map { result =>
-                assert(result)(hasSameElements(expected))
-              }
+            val name = "Alex"
+            (for {
+              user <- createUser(name)
+              expected <- ZIO.succeed(user +: users)
+              result <- allUsers
+            } yield assert(result)(hasSameElements(expected)))
               .provideLayer(UserService.live(users.toM) ++ env)
           }.provideLayer(testEnvironment ++ IdGenerator.live)
         }
