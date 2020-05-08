@@ -40,6 +40,9 @@ package object users {
     def live(users: Map[DUser.Id, DUser] = Map.empty): ZLayer[Any, Nothing, UserService] =
       ZLayer.fromEffect(Ref.make(users).map(Live.interpreter))
 
+    def inMemory(): ZLayer[Any, Nothing, UserService] =
+      ZLayer.succeed(InMemory.interpreter)
+
     def logging(underlying: Layer[Nothing, UserService]): ZLayer[Any, Nothing, UserService] =
       (underlying ++ LoggingEffect.consoleLogger) >>> ZLayer.succeed(Logging.interpreter)
 

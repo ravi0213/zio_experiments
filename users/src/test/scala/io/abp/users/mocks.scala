@@ -10,13 +10,13 @@ import zio.clock._
 import zio.duration.Duration
 
 package object mocks {
-  def testIdGenerator(fixedUserId: User.Id): ULayer[IdGenerator] =
+  def testIdGeneratorMock(fixedUserId: User.Id): ULayer[IdGenerator] =
     ZLayer.succeed(
       new IdGenerator.Service {
         val userId = UIO(fixedUserId)
       }
     )
-  def testClock(fixedDateTime: OffsetDateTime): ULayer[Clock] =
+  def testClockMock(fixedDateTime: OffsetDateTime): ULayer[Clock] =
     ZLayer.succeed(new Clock.Service {
       val fixedMillis = fixedDateTime.toEpochSecond
       def currentTime(unit: TimeUnit): UIO[Long] =

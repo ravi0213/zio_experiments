@@ -13,7 +13,7 @@ package object generators {
   val userGen: Gen[Random with Sized with IdGenerator, User] =
     for {
       id <- Gen.fromEffect(userId)
-      name <- Gen.alphaNumericString
+      name <- Gen.alphaNumericStringBounded(5, 20).noShrink
       createdAt <- offsetDateTime(
         OffsetDateTime.parse("2008-12-03T10:10:30+01:00"),
         OffsetDateTime.parse("2020-12-03T10:10:30+01:00")
