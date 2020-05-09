@@ -5,8 +5,6 @@ import users.User.Error._
 import zio._
 
 package object users {
-  type UserService = Has[User.Service]
-
   object User {
     trait Service extends Serializable {
       type Env
