@@ -1,7 +1,6 @@
 package io.abp.users.services.users.interpreters
 
 import io.abp.users.domain.User
-import io.abp.users.services.users._
 import io.abp.users.services.users.User.Error._
 import io.abp.users.services.users.User.Service
 import zio._
