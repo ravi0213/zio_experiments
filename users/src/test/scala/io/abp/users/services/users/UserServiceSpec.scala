@@ -14,29 +14,33 @@ import zio.test.environment._
 import zio.test.Gen._
 
 object UserServiceSpec extends DefaultRunnableSpec {
-  def makeUserService(input: Map[User.Id, User] = Map()) = UserService.inMemory(input)
+  def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.live(input)
 
   override def spec =
     suite("UserService")(
       suite("create")(
         testM("should create a new user and return it") {
-          val userService = makeUserService()
-          checkM(anyString) { name =>
-            val expected = User(fixedUserId, name, fixedDateTime)
-            userService
-              .create(name)
-              .map { result => assert(result)(equalTo(expected)) }
-              .provideLayer(TestEnvironments().env)
-          }
+          for {
+            ref <- Ref.make(Map.empty[User.Id, User])
+            userService = makeUserService(ref)
+            result <- checkM(anyString) { name =>
+              val expected = User(fixedUserId, name, fixedDateTime)
+              userService
+                .create(name)
+                .map { result => assert(result)(equalTo(expected)) }
+                .provideLayer(TestEnvironments().env)
+            }
+          } yield result
         }
       ),
       suite("get")(
         testM("should return the user with the corresponding id") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
-            val userService = makeUserService(users.toM)
             val name = "Alex"
             val expected = Some(User(fixedUserId, name, fixedDateTime))
             (for {
+              ref <- Ref.make(users.toM)
+              userService = makeUserService(ref)
               _ <- userService.create(name)
               result <- userService.get(fixedUserId)
             } yield assert(result)(equalTo(expected)))
@@ -47,10 +51,11 @@ object UserServiceSpec extends DefaultRunnableSpec {
       suite("getByName")(
         testM("should return the list of users with the corresponding name") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
-            val userService = makeUserService(users.toM)
             val name = "Alex"
             val expected = List(User(fixedUserId, name, fixedDateTime))
             (for {
+              ref <- Ref.make(users.toM)
+              userService = makeUserService(ref)
               _ <- userService.create(name)
               result <- userService.getByName(name)
             } yield assert(result)(equalTo(expected)))
@@ -61,9 +66,10 @@ object UserServiceSpec extends DefaultRunnableSpec {
       suite("all")(
         testM("should return the list of all users") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
-            val userService = makeUserService(users.toM)
             val name = "Alex"
             (for {
+              ref <- Ref.make(users.toM)
+              userService = makeUserService(ref)
               user <- userService.create(name)
               expected <- ZIO.succeed(user +: users)
               result <- userService.all
