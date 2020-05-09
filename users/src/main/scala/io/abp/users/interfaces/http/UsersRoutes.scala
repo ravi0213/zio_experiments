@@ -1,18 +1,17 @@
 package io.abp.users.interfaces.http
 
 import io.abp.users.domain.User
-import io.abp.users.modules.Environments
-import io.abp.users.modules.Services
+import io.abp.users.interfaces.http.UsersRoutes._
+import io.abp.users.modules.{Environments, Services}
 import io.abp.users.programs.UserProgram
 import io.abp.users.programs.UserProgram.ProgramError
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto._
-import io.circe.{Encoder, Decoder}
+import io.circe.{Decoder, Encoder}
 import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 import org.http4s.circe.CirceEntityEncoder.circeEntityEncoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{HttpRoutes, Response}
-import UsersRoutes._
 import zio._
 import zio.interop.catz._
 
