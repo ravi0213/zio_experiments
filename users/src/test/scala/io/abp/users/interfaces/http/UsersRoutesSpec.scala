@@ -6,7 +6,6 @@ import io.abp.users.domain.User
 import io.abp.users.effects.idGenerator._
 import io.abp.users.fixtures._
 import io.abp.users.generators._
-import io.abp.users.services.users._
 import io.abp.users.services.users.{User => UserService}
 import io.abp.users.TestEnvironments
 import io.circe.Decoder
