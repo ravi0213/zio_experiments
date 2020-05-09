@@ -5,11 +5,8 @@ import users.User.Error._
 import zio._
 
 package object users {
-  type UserService = Has[User.Service]
-
   object User {
-    trait Service extends Serializable {
-      type Env
+    trait Service[Env] extends Serializable {
       def all: ZIO[Env, GetError, List[DUser]]
       def get(id: DUser.Id): ZIO[Env, GetError, Option[DUser]]
       def getByName(name: String): ZIO[Env, GetByNameError, List[DUser]]
@@ -34,8 +31,8 @@ package object users {
     import interpreters._
 
     def inMemory(input: Map[DUser.Id, DUser] = Map()) = InMemory.interpreter(input)
-    def live(users: Map[DUser.Id, DUser] = Map.empty) = Ref.make(users).map(Live.interpreter)
-    def logging(underlying: User.Service) = Logging.interpreter(underlying)
-    def tracing(underlying: User.Service) = Tracing.interpreter(underlying)
+    def live[Env](users: Map[DUser.Id, DUser] = Map.empty) = Ref.make(users).map(Live.interpreter[Env])
+    def logging[Env](underlying: User.Service[Env]) = Logging.interpreter(underlying)
+    def tracing[Env](underlying: User.Service[Env]) = Tracing.interpreter(underlying)
   }
 }

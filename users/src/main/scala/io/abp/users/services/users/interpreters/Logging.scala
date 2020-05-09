@@ -8,18 +8,17 @@ import io.abp.users.services.users.User.Service
 import zio._
 
 object Logging {
-  def interpreter(underlying: Service) =
-    new Service {
-      type Env = underlying.Env with Logging
-
-      final def all: ZIO[Env, GetError, List[User]] =
+  def interpreter[Env](underlying: Service[Env]): Service[Env with Logging] = {
+    type WithLogging = Env with Logging
+    new Service[WithLogging] {
+      final def all: ZIO[WithLogging, GetError, List[User]] =
         underlying.all
           .foldM(
             e => error(e)(s"Couldn't get all users. error: $e") *> ZIO.fail(e),
             users => debug(s"Successfully got users $users") *> UIO.succeed(users)
           )
 
-      final def get(id: User.Id): ZIO[Env, GetError, Option[User]] =
+      final def get(id: User.Id): ZIO[WithLogging, GetError, Option[User]] =
         underlying
           .get(id)
           .foldM(
@@ -27,7 +26,7 @@ object Logging {
             user => debug(s"Successfully got user $user") *> UIO.succeed(user)
           )
 
-      final def getByName(name: String): ZIO[Env, GetByNameError, List[User]] =
+      final def getByName(name: String): ZIO[WithLogging, GetByNameError, List[User]] =
         underlying
           .getByName(name)
           .foldM(
@@ -37,7 +36,7 @@ object Logging {
 
       final def create(
           name: String
-      ): ZIO[Env, CreateError, User] =
+      ): ZIO[WithLogging, CreateError, User] =
         underlying
           .create(name)
           .foldM(
@@ -47,4 +46,5 @@ object Logging {
             u => debug(s"Successfully created user with id ${u.id}") *> UIO.succeed(u)
           )
     }
+  }
 }
