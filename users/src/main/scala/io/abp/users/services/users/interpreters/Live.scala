@@ -11,6 +11,8 @@ import zio.clock._
 object Live {
   def interpreter(usersRef: Ref[Map[User.Id, User]]) =
     new Service {
+      type Env = IdGenerator with Clock
+
       final def all: IO[GetError, List[User]] =
         for {
           users <- usersRef.get

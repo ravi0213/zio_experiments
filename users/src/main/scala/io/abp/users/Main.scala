@@ -27,7 +27,7 @@ object Main extends App {
         .onError {
           case e =>
             error(e)("Couldn't start the application")
-        }
+        } *> info("Server running")
   }
 
 }

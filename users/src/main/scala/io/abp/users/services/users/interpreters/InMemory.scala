@@ -9,9 +9,11 @@ import zio._
 import zio.clock._
 
 object InMemory {
-  val interpreter =
+  def interpreter(input: Map[User.Id, User]) =
     new Service {
-      private var users: Map[User.Id, User] = Map()
+      type Env = IdGenerator with Clock
+
+      private var users: Map[User.Id, User] = input
 
       final def all: IO[GetError, List[User]] =
         for {

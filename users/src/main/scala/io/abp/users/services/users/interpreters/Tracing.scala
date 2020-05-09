@@ -8,26 +8,31 @@ import zio._
 import zio.telemetry.opentracing._
 
 object Tracing {
-  val interpreter =
+  def interpreter(underlying: Service) =
     new Service {
-      final def all: ZIO[Env with UserService, GetError, List[User]] =
-        allUsers
+      type Env = underlying.Env with OpenTracing
+
+      final def all: ZIO[Env, GetError, List[User]] =
+        underlying.all
           .span("UserService - Get All Users")
 
       final def get(
           id: User.Id
-      ): ZIO[Env with UserService, GetError, Option[User]] =
-        getUser(id)
+      ): ZIO[Env, GetError, Option[User]] =
+        underlying
+          .get(id)
           .span("UserService - Get User")
 
-      final def getByName(name: String): ZIO[Env with UserService, GetByNameError, List[User]] =
-        getUsersByName(name)
+      final def getByName(name: String): ZIO[Env, GetByNameError, List[User]] =
+        underlying
+          .getByName(name)
           .span("UserService - Get User By Name")
 
       final def create(
           name: String
-      ): ZIO[Env with UserService, CreateError, User] =
-        createUser(name)
+      ): ZIO[Env, CreateError, User] =
+        underlying
+          .create(name)
           .span("UserService - Create User")
     }
 }

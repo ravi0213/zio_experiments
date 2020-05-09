@@ -6,33 +6,36 @@ import java.time.Instant
 import java.time.ZoneOffset
 
 import io.abp.users.domain.User
-import io.abp.users.services.users
-import io.abp.users.services.users.{User => UserService, _}
+import io.abp.users.services.users.{User => UserService}
 import zio._
-import zio.console._
-import zio.random._
 
 object UserProgram {
-  type ProgramEnv = Console with Random with UserService with Env
 
   //The existence check wouldn't work in a concurrent system. We need semantic locking.
   //TODO: explore ZIO.STM and ZIO.Ref
-  def createUser(name: String): ZIO[ProgramEnv, ProgramError, User.Id] =
+  def createUser(
+      userService: UserService.Service
+  )(name: String): ZIO[userService.Env, ProgramError, User.Id] =
     for {
-      result <- getUsersByName(name).mapError(ProgramError.UserError)
-      user <-
-        if (result.isEmpty) users.createUser(name).mapError(ProgramError.UserError)
-        else ZIO.fail(ProgramError.UserAlreadyExists)
+      //result <- getUsersByName(name).mapError(ProgramError.UserError)
+      user <- userService.create(name).mapError(ProgramError.UserError)
+      //user <-
+      //  if (result.isEmpty) users.createUser(name).mapError(ProgramError.UserError)
+      //  else ZIO.fail(ProgramError.UserAlreadyExists)
     } yield user.id
 
-  def getUser(id: User.Id): ZIO[ProgramEnv, ProgramError, Option[User]] =
-    users.getUser(id).mapError(ProgramError.UserError)
+  def getUser(
+      userService: UserService.Service
+  )(id: User.Id): ZIO[userService.Env, ProgramError, Option[User]] =
+    userService.get(id).mapError(ProgramError.UserError)
 
-  def getAllUsers(): ZIO[ProgramEnv, ProgramError, List[User]] =
-    allUsers().mapError(ProgramError.UserError)
+  def getAllUsers(userService: UserService.Service)(): ZIO[userService.Env, ProgramError, List[User]] =
+    userService.all.mapError(ProgramError.UserError)
 
-  def getUsersCreatedBefore(instant: Instant): ZIO[ProgramEnv, ProgramError, List[User]] =
-    allUsers()
+  def getUsersCreatedBefore(
+      userService: UserService.Service
+  )(instant: Instant): ZIO[userService.Env, ProgramError, List[User]] =
+    userService.all
       .mapError(ProgramError.UserError)
       .map(_.filter(_.createdAt.atZoneSameInstant(ZoneOffset.UTC).toInstant.isBefore(instant)))
 
