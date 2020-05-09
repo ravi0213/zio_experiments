@@ -3,6 +3,7 @@ package io.abp.users.modules
 import cats.arrow.FunctionK
 import cats.syntax.semigroupk._
 import io.abp.users.config.ApiConfig
+import io.abp.users.domain.User
 import io.abp.users.interfaces.http.{SystemRoutes, UsersRoutes}
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -22,15 +23,17 @@ object Server {
       RequestResponseLogger(apiConfig.logHeaders, apiConfig.logBody, FunctionK.id[Task])(routes.orNotFound)
     }
 
-    val routes: HttpRoutes[Task] = SystemRoutes[Task]().routes <+> UsersRoutes(envs).routes
-
-    ZIO.runtime[ZEnv].flatMap { implicit rts =>
-      BlazeServerBuilder[Task](rts.platform.executor.asEC)
-        .bindHttp(apiConfig.port, apiConfig.host)
-        .withHttpApp(middleware(routes))
-        .serve
-        .compile
-        .drain
-    }
+    for {
+      ref <- Ref.make(Map.empty[User.Id, User])
+      routes <- ZIO.succeed(SystemRoutes[Task]().routes <+> UsersRoutes(envs, ref).routes)
+      implicit0(rts: Runtime[ZEnv]) <- ZIO.runtime[ZEnv]
+      _ <-
+        BlazeServerBuilder[Task](rts.platform.executor.asEC)
+          .bindHttp(apiConfig.port, apiConfig.host)
+          .withHttpApp(middleware(routes))
+          .serve
+          .compile
+          .drain
+    } yield ()
   }
 }

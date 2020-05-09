@@ -16,9 +16,10 @@ import zio._
 import zio.interop.catz._
 
 class UsersRoutes(
-    envs: Environments
+    envs: Environments,
+    usersRef: Ref[Map[User.Id, User]]
 ) extends Http4sDsl[AppTask] {
-  val userService = Services.userService
+  val userService = Services.userService(usersRef)
 
   private val pathPrefix = Root / "users"
   val routes = HttpRoutes.of[AppTask] {
@@ -51,8 +52,8 @@ class UsersRoutes(
 }
 
 object UsersRoutes {
-  def apply(envs: Environments): UsersRoutes =
-    new UsersRoutes(envs)
+  def apply(envs: Environments, usersRef: Ref[Map[User.Id, User]]): UsersRoutes =
+    new UsersRoutes(envs, usersRef)
   type AppTask[A] = ZIO[Any, Throwable, A]
   final case class AllUsersResponse(users: List[User])
   final case class CreateUserRequest(name: String)
