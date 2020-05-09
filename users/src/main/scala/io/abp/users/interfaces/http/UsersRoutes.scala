@@ -21,17 +21,14 @@ class UsersRoutes(
 ) extends Http4sDsl[AppTask] {
   val userService = Services.userService
 
-  val allUsersProgram: () => ZIO[userService.Env, ProgramError, List[User]] =
-    UserProgram.getAllUsers(userService)
-
   private val pathPrefix = Root / "users"
   val routes = HttpRoutes.of[AppTask] {
     case GET -> `pathPrefix` =>
-      allUsersProgram()
+      UserProgram
+        .getAllUsers(userService)
         .provideLayer(envs.userProgramEnv)
         .foldM(errorHandler, Ok(_))
     case GET -> `pathPrefix` / id =>
-      println(id)
       UserProgram
         .getUser(userService)(User.Id(id))
         .provideLayer(envs.userProgramEnv)
