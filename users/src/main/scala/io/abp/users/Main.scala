@@ -1,9 +1,11 @@
 package io.abp.users
 
 import io.abp.users.config.AppConfig
+import io.abp.users.domain.User
 import io.abp.users.effects.log._
 import io.abp.users.modules.Environments
 import io.abp.users.modules.Server
+import io.abp.users.modules.Services
 import zio._
 
 object Main extends App {
@@ -22,8 +24,14 @@ object Main extends App {
       envs: Environments
   ): ZIO[ZEnv with Logging, Throwable, Unit] = {
     info("Application resources loaded, running Application") *>
-      Server
-        .serve(config.api, envs)
+      (for {
+        ref <- Ref.make(Map.empty[User.Id, User])
+        userService = Services.userService(ref)
+        _ <-
+          Server
+            .serve(config.api, userService)
+            .provideCustomLayer(envs.userProgramEnv)
+      } yield ())
         .onError {
           case e =>
             error(e)("Couldn't start the application")
