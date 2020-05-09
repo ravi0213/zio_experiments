@@ -9,7 +9,7 @@ import zio._
 import zio.clock._
 
 object InMemory {
-  def interpreter[Env](input: Map[User.Id, User]) = {
+  def interpreter(input: Map[User.Id, User]) = {
     type WithIdAndClock = IdGenerator with Clock
     new Service[WithIdAndClock] {
       private var users: Map[User.Id, User] = input

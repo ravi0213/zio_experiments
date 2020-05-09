@@ -9,8 +9,8 @@ import zio._
 import zio.clock._
 
 object Live {
-  def interpreter[Env](usersRef: Ref[Map[User.Id, User]]) = {
-    type WithIdAndClock = Env with IdGenerator with Clock
+  def interpreter(usersRef: Ref[Map[User.Id, User]]) = {
+    type WithIdAndClock = IdGenerator with Clock
     new Service[WithIdAndClock] {
       final def all: ZIO[WithIdAndClock, GetError, List[User]] =
         for {

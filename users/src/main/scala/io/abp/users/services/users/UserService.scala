@@ -34,9 +34,12 @@ package object users {
 
     import interpreters._
 
-    def inMemory(input: Map[DUser.Id, DUser] = Map()): Service[IdGenerator with Clock] = InMemory.interpreter(input)
-    def live[Env](users: Map[DUser.Id, DUser] = Map.empty) = Ref.make(users).map(Live.interpreter[Env])
-    def logging[Env](underlying: User.Service[Env]): Service[Env with log.Logging] = Logging.interpreter[Env](underlying)
-    def tracing[Env](underlying: User.Service[Env]): Service[Env with OpenTracing] = Tracing.interpreter[Env](underlying)
+    def inMemory(input: Map[DUser.Id, DUser] = Map()): Service[IdGenerator with Clock] =
+      InMemory.interpreter(input)
+    def live(users: Ref[Map[DUser.Id, DUser]]): Service[IdGenerator with Clock] = Live.interpreter(users)
+    def logging[Env](underlying: User.Service[Env]): Service[Env with log.Logging] =
+      Logging.interpreter[Env](underlying)
+    def tracing[Env](underlying: User.Service[Env]): Service[Env with OpenTracing] =
+      Tracing.interpreter[Env](underlying)
   }
 }
