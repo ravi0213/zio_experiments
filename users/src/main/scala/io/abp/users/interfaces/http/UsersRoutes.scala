@@ -27,20 +27,21 @@ class UsersRoutes[Env](
     case GET -> `pathPrefix` =>
       UserProgram
         .getAllUsers(userService)
-        .foldM(errorHandler, Ok(_))
+        .foldM(errorHandler, users => Ok(AllUsersResponse(users)))
     case GET -> `pathPrefix` / id =>
       UserProgram
         .getUser(userService)(User.Id(id))
-        .foldM(errorHandler, Ok(_))
+        .foldM(errorHandler, user => Ok(GetUserResponse(user)))
 
     case request @ POST -> `pathPrefix` =>
       request.as[CreateUserRequest].flatMap { req =>
         UserProgram
           .createUser(userService)(req.name)
-          .foldM(errorHandler, Ok(_))
+          .foldM(errorHandler, id => Ok(CreateUserResponse(id)))
       }
   }
 
+  //TODO: improve error handling
   private def errorHandler: ProgramError => AppTask[Response[AppTask]] = {
     case ProgramError.UserAlreadyExists => Conflict()
     case ProgramError.UserError(_)      => InternalServerError()
@@ -54,13 +55,19 @@ object UsersRoutes {
       userService: users.User.Service[Env]
   ): UsersRoutes[Env] =
     new UsersRoutes[Env](userService)
+
   final case class AllUsersResponse(users: List[User])
+  final case class GetUserResponse(user: Option[User])
   final case class CreateUserRequest(name: String)
+  final case class CreateUserResponse(id: User.Id)
 
   implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
   implicit val userIdEncoder: Encoder[User.Id] = deriveConfiguredEncoder[User.Id]
   implicit val userEncoder: Encoder[User] = deriveConfiguredEncoder[User]
   implicit val allUsersRespEncoder: Encoder[AllUsersResponse] = deriveConfiguredEncoder[AllUsersResponse]
+  implicit val createUserRespEncoder: Encoder[CreateUserResponse] =
+    deriveConfiguredEncoder[CreateUserResponse]
+  implicit val getUserRespEncoder: Encoder[GetUserResponse] = deriveConfiguredEncoder[GetUserResponse]
 
   implicit val createUserReqDecoder: Decoder[CreateUserRequest] = deriveConfiguredDecoder[CreateUserRequest]
 }

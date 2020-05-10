@@ -33,6 +33,10 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
   implicit val circeConfig: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
   implicit val userIdDecoder: Decoder[User.Id] = deriveConfiguredDecoder[User.Id]
   implicit val userDecoder: Decoder[User] = deriveConfiguredDecoder[User]
+  implicit val usersDecoder: Decoder[UsersResponse] = deriveConfiguredDecoder[UsersResponse]
+  implicit val createUserDecoder: Decoder[CreateUserResponse] = deriveConfiguredDecoder[CreateUserResponse]
+  case class UsersResponse(users: List[User])
+  case class CreateUserResponse(id: User.Id)
 
   override def spec =
     suite("UsersRoutes")(
@@ -48,8 +52,8 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
             ref <- Ref.make(Map.empty[User.Id, User])
             userService = makeUserService(ref)
             response <- UsersRoutes(userService).routes.orNotFound(createUserRequest)
-            result <- response.as[User.Id]
-          } yield assert(result)(equalTo(expected.id))).provideLayer(envs.env)
+            result <- response.as[CreateUserResponse]
+          } yield assert(result.id)(equalTo(expected.id))).provideLayer(envs.env)
         }
       ),
       suite("GET /users route")(
@@ -70,8 +74,8 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
                     .map(user => Map(("name" -> user.name)))
                     .traverse(body => userRoutes.orNotFound(postRequest.withEntity(body.asJson)))
                 response <- userRoutes.orNotFound(getRequest)
-                result <- response.as[List[User]]
-              } yield assert(result.map(_.name))(hasSameElements(expected.map(_.name))))
+                result <- response.as[UsersResponse]
+              } yield assert(result.users.map(_.name))(hasSameElements(expected.map(_.name))))
                 .provideLayer(envs.env)
           }.provideLayer(testEnvironment ++ IdGenerator.live)
         }
