@@ -40,7 +40,7 @@ class UsersRoutes[Env: Tagged] {
 
   //TODO: improve error handling
   private def errorHandler: ProgramError => AppTask[Response[AppTask]] = {
-    case ProgramError.UserAlreadyExists => Conflict()
+    case ProgramError.UserAlreadyExists => Conflict("User already exists")
     case ProgramError.UserError(_)      => InternalServerError()
     case ProgramError.ConsoleError(_)   => InternalServerError()
     case ProgramError.ClockError(_)     => InternalServerError()

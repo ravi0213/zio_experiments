@@ -16,11 +16,10 @@ object UserProgram {
   //TODO: explore ZIO.STM and ZIO.Ref
   def createUser[Env: Tagged](name: String): ZIO[Env with UserService[Env], ProgramError, User.Id] =
     for {
-      //result <- getUsersByName(name).mapError(ProgramError.UserError)
-      user <- users.createUser(name).mapError(ProgramError.UserError)
-      //user <-
-      //  if (result.isEmpty) users.createUser(name).mapError(ProgramError.UserError)
-      //  else ZIO.fail(ProgramError.UserAlreadyExists)
+      result <- getUsersByName(name).mapError(ProgramError.UserError)
+      user <-
+        if (result.isEmpty) users.createUser(name).mapError(ProgramError.UserError)
+        else ZIO.fail(ProgramError.UserAlreadyExists)
     } yield user.id
 
   def getUser[Env: Tagged](id: User.Id): ZIO[Env with UserService[Env], ProgramError, Option[User]] =
