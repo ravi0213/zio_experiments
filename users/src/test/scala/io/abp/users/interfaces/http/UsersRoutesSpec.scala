@@ -6,6 +6,7 @@ import io.abp.users.domain.User
 import io.abp.users.effects.idGenerator._
 import io.abp.users.fixtures._
 import io.abp.users.generators._
+import io.abp.users.services.users
 import io.abp.users.services.users.{User => UserService}
 import io.abp.users.TestEnvironments
 import io.circe.Decoder
@@ -26,7 +27,7 @@ import zio.test.environment._
 
 object UsersRoutesSpec extends DefaultRunnableSpec {
   type Env = Clock with IdGenerator
-  type AppTask[A] = ZIO[Env, Throwable, A]
+  type AppTask[A] = ZIO[Env with users.UserService[Env], Throwable, A]
 
   def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.live(input)
 
@@ -47,13 +48,13 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
           val body = Map(("name" -> name))
           val createUserRequest = Request[AppTask](uri = uri"/users", method = POST).withEntity(body.asJson)
           val expected = User(fixedUserId, name, fixedDateTime)
-
-          (for {
-            ref <- Ref.make(Map.empty[User.Id, User])
-            userService = makeUserService(ref)
-            response <- UsersRoutes(userService).routes.orNotFound(createUserRequest)
-            result <- response.as[CreateUserResponse]
-          } yield assert(result.id)(equalTo(expected.id))).provideLayer(envs.env)
+          Ref.make(Map.empty[User.Id, User]).flatMap { ref =>
+            (for {
+              response <- UsersRoutes[Env].routes.orNotFound(createUserRequest)
+              result <- response.as[CreateUserResponse]
+            } yield assert(result.id)(equalTo(expected.id)))
+              .provideLayer(envs.env ++ ZLayer.succeed(makeUserService(ref)))
+          }
         }
       ),
       suite("GET /users route")(
@@ -65,18 +66,19 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
               val envs = TestEnvironments(testIdGenerator = IdGenerator.live)
               val expected = users
 
-              (for {
-                ref <- Ref.make(Map.empty[User.Id, User])
-                userService = makeUserService(ref)
-                userRoutes = UsersRoutes(userService).routes
-                _ <-
-                  users
-                    .map(user => Map(("name" -> user.name)))
-                    .traverse(body => userRoutes.orNotFound(postRequest.withEntity(body.asJson)))
-                response <- userRoutes.orNotFound(getRequest)
-                result <- response.as[UsersResponse]
-              } yield assert(result.users.map(_.name))(hasSameElements(expected.map(_.name))))
-                .provideLayer(envs.env)
+              Ref.make(Map.empty[User.Id, User]).flatMap {
+                ref =>
+                  (for {
+                    userRoutes <- ZIO.succeed(UsersRoutes[Env].routes)
+                    _ <-
+                      users
+                        .map(user => Map(("name" -> user.name)))
+                        .traverse(body => userRoutes.orNotFound(postRequest.withEntity(body.asJson)))
+                    response <- userRoutes.orNotFound(getRequest)
+                    result <- response.as[UsersResponse]
+                  } yield assert(result.users.map(_.name))(hasSameElements(expected.map(_.name))))
+                    .provideLayer(envs.env ++ ZLayer.succeed(makeUserService(ref)))
+              }
           }.provideLayer(testEnvironment ++ IdGenerator.live)
         }
       )

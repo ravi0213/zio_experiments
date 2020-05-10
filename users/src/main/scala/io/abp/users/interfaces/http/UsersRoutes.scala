@@ -4,7 +4,7 @@ import io.abp.users.domain.User
 import io.abp.users.interfaces.http.UsersRoutes._
 import io.abp.users.programs.UserProgram
 import io.abp.users.programs.UserProgram.ProgramError
-import io.abp.users.services.users
+import io.abp.users.services.users.UserService
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}
@@ -15,28 +15,25 @@ import org.http4s.{HttpRoutes, Response}
 import zio._
 import zio.interop.catz._
 
-class UsersRoutes[Env](
-    userService: users.User.Service[Env]
-) {
-  type AppTask[A] = ZIO[Env, Throwable, A]
+class UsersRoutes[Env: Tagged] {
+  type AppTask[A] = ZIO[Env with UserService[Env], Throwable, A]
   val dsl: Http4sDsl[AppTask] = Http4sDsl[AppTask]
   import dsl._
 
   private val pathPrefix = Root / "users"
   val routes = HttpRoutes.of[AppTask] {
     case GET -> `pathPrefix` =>
-      UserProgram
-        .getAllUsers(userService)
+      UserProgram.getAllUsers
         .foldM(errorHandler, users => Ok(AllUsersResponse(users)))
     case GET -> `pathPrefix` / id =>
       UserProgram
-        .getUser(userService)(User.Id(id))
+        .getUser(User.Id(id))
         .foldM(errorHandler, user => Ok(GetUserResponse(user)))
 
     case request @ POST -> `pathPrefix` =>
       request.as[CreateUserRequest].flatMap { req =>
         UserProgram
-          .createUser(userService)(req.name)
+          .createUser(req.name)
           .foldM(errorHandler, id => Ok(CreateUserResponse(id)))
       }
   }
@@ -51,10 +48,7 @@ class UsersRoutes[Env](
 }
 
 object UsersRoutes {
-  def apply[Env](
-      userService: users.User.Service[Env]
-  ): UsersRoutes[Env] =
-    new UsersRoutes[Env](userService)
+  def apply[Env: Tagged]: UsersRoutes[Env] = new UsersRoutes[Env]()
 
   final case class AllUsersResponse(users: List[User])
   final case class GetUserResponse(user: Option[User])
