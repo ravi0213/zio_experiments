@@ -7,6 +7,7 @@ import io.abp.users.generators._
 import io.abp.users.mocks._
 import io.abp.users.services.users.{User => UserService}
 import io.abp.users.TestEnvironments
+import io.abp.users.utils._
 import zio._
 import zio.test._
 import zio.test.Assertion._
@@ -23,8 +24,8 @@ object UserServiceSpec extends DefaultRunnableSpec {
           for {
             ref <- Ref.make(Map.empty[User.Id, User])
             userService = makeUserService(ref)
-            result <- checkM(anyString) { name =>
-              val expected = User(fixedUserId, name, fixedDateTime)
+            result <- checkM(anyString.noShrink) { name =>
+              val expected = user.copy(name = name)
               userService
                 .create(name)
                 .map { result => assert(result)(equalTo(expected)) }
@@ -36,12 +37,11 @@ object UserServiceSpec extends DefaultRunnableSpec {
       suite("get")(
         testM("should return the user with the corresponding id") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
-            val name = "Alex"
-            val expected = Some(User(fixedUserId, name, fixedDateTime))
+            val expected = Some(user)
             (for {
               ref <- Ref.make(users.toM)
               userService = makeUserService(ref)
-              _ <- userService.create(name)
+              _ <- userService.create(fixedName)
               result <- userService.get(fixedUserId)
             } yield assert(result)(equalTo(expected)))
               .provideLayer(TestEnvironments().env)
@@ -51,13 +51,12 @@ object UserServiceSpec extends DefaultRunnableSpec {
       suite("getByName")(
         testM("should return the list of users with the corresponding name") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
-            val name = "Alex"
-            val expected = List(User(fixedUserId, name, fixedDateTime))
+            val expected = List(user)
             (for {
               ref <- Ref.make(users.toM)
               userService = makeUserService(ref)
-              _ <- userService.create(name)
-              result <- userService.getByName(name)
+              _ <- userService.create(fixedName)
+              result <- userService.getByName(fixedName)
             } yield assert(result)(equalTo(expected)))
               .provideLayer(TestEnvironments().env)
           }.provideLayer(testEnvironment ++ testIdGeneratorMock(fixedUserId))
@@ -66,11 +65,10 @@ object UserServiceSpec extends DefaultRunnableSpec {
       suite("all")(
         testM("should return the list of all users") {
           checkM(Gen.listOfN(10)(userGen)) { users =>
-            val name = "Alex"
             (for {
               ref <- Ref.make(users.toM)
               userService = makeUserService(ref)
-              user <- userService.create(name)
+              user <- userService.create(fixedName)
               expected <- ZIO.succeed(user +: users)
               result <- userService.all
             } yield assert(result)(hasSameElements(expected)))
@@ -83,8 +81,4 @@ object UserServiceSpec extends DefaultRunnableSpec {
         }
       )
     )
-
-  implicit class UserOps(val users: List[User]) extends AnyVal {
-    def toM = users.map(u => (u.id, u)).toMap
-  }
 }

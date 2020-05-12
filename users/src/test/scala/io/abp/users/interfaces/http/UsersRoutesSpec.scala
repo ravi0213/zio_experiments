@@ -9,6 +9,7 @@ import io.abp.users.generators._
 import io.abp.users.services.users
 import io.abp.users.services.users.{User => UserService}
 import io.abp.users.TestEnvironments
+import io.abp.users.utils._
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto._
@@ -34,20 +35,22 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
   implicit val circeConfig: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
   implicit val userIdDecoder: Decoder[User.Id] = deriveConfiguredDecoder[User.Id]
   implicit val userDecoder: Decoder[User] = deriveConfiguredDecoder[User]
-  implicit val usersDecoder: Decoder[UsersResponse] = deriveConfiguredDecoder[UsersResponse]
-  implicit val createUserDecoder: Decoder[CreateUserResponse] = deriveConfiguredDecoder[CreateUserResponse]
-  case class UsersResponse(users: List[User])
+  implicit val allUsersResponseDecoder: Decoder[AllUsersResponse] = deriveConfiguredDecoder[AllUsersResponse]
+  implicit val createUserResponseDecoder: Decoder[CreateUserResponse] =
+    deriveConfiguredDecoder[CreateUserResponse]
+  implicit val getUserResponseDecoder: Decoder[GetUserResponse] = deriveConfiguredDecoder[GetUserResponse]
+  case class AllUsersResponse(users: List[User])
   case class CreateUserResponse(id: User.Id)
+  case class GetUserResponse(user: User)
 
   override def spec =
     suite("UsersRoutes")(
       suite("POST /users route")(
         testM("should create a new users and return it") {
           val envs = TestEnvironments()
-          val name = "Alex"
-          val body = Map(("name" -> name))
+          val body = Map(("name" -> fixedName))
           val createUserRequest = Request[AppTask](uri = uri"/users", method = POST).withEntity(body.asJson)
-          val expected = User(fixedUserId, name, fixedDateTime)
+          val expected = user
           Ref.make(Map.empty[User.Id, User]).flatMap { ref =>
             (for {
               response <- UsersRoutes[Env].routes.orNotFound(createUserRequest)
@@ -75,9 +78,29 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
                         .map(user => Map(("name" -> user.name)))
                         .traverse(body => userRoutes.orNotFound(postRequest.withEntity(body.asJson)))
                     response <- userRoutes.orNotFound(getRequest)
-                    result <- response.as[UsersResponse]
+                    result <- response.as[AllUsersResponse]
                   } yield assert(result.users.map(_.name))(hasSameElements(expected.map(_.name))))
                     .provideLayer(envs.env ++ ZLayer.succeed(makeUserService(ref)))
+              }
+          }.provideLayer(testEnvironment ++ IdGenerator.live)
+        }
+      ),
+      suite("GET /users/:id route")(
+        testM("should return user with specified id") {
+          val getRequest =
+            (id: User.Id) => Request[AppTask](uri = Uri(path = s"/users/${id.value}"), method = GET)
+          checkM(Gen.listOfN(10)(userGen)) {
+            users =>
+              val expected = user
+              val envs = TestEnvironments(testIdGenerator = IdGenerator.live)
+
+              Ref.make((user +: users).toM).flatMap { ref =>
+                (for {
+                  userRoutes <- ZIO.succeed(UsersRoutes[Env].routes)
+                  response <- userRoutes.orNotFound(getRequest(user.id))
+                  result <- response.as[GetUserResponse]
+                } yield assert(result.user)(equalTo(expected)))
+                  .provideLayer(envs.env ++ ZLayer.succeed(makeUserService(ref)))
               }
           }.provideLayer(testEnvironment ++ IdGenerator.live)
         }
