@@ -8,7 +8,7 @@ object Dependencies {
     val opentracing = "0.33.0"
     val zio = "1.0.0-RC18-2"
     val zioOpenTracing = "0.3.0"
-    val zipkin = "2.13.1"
+    val zipkin = "2.13.2"
 
     val scalaTest = "3.1.1"
 
