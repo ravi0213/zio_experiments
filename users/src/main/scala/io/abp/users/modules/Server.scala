@@ -17,15 +17,17 @@ object Server {
   def serve[Env: Tagged](
       apiConfig: ApiConfig
   ): ZIO[ZEnv with Env with UserService[Env], Throwable, Unit] = {
-    type AppTask[A] = ZIO[Env with UserService[Env], Throwable, A]
+    type AppTaskEnv = Env with UserService[Env]
+    type AppTask[A] = ZIO[AppTaskEnv, Throwable, A]
 
-    val timer = new Timers[Env with UserService[Env]]
+    val timer = new Timers[AppTaskEnv]
     import timer._
 
     val middleware: HttpRoutes[AppTask] => HttpApp[AppTask] = { routes: HttpRoutes[AppTask] =>
       AutoSlash(routes)
     } andThen { routes: HttpRoutes[AppTask] =>
       CORS(routes, CORS.DefaultCORSConfig)
+    //TODO: Figure out how to add back the Timeout logging
     } andThen { routes: HttpRoutes[AppTask] =>
       RequestResponseLogger(apiConfig.logHeaders, apiConfig.logBody, FunctionK.id[AppTask])(routes.orNotFound)
     }
@@ -34,8 +36,7 @@ object Server {
       routes <- ZIO.succeed(
         SystemRoutes[AppTask]().routes <+> UsersRoutes[Env].routes
       )
-      implicit0(rts: Runtime[ZEnv with Env with UserService[Env]]) <-
-        ZIO.runtime[ZEnv with Env with UserService[Env]]
+      implicit0(rts: Runtime[ZEnv with AppTaskEnv]) <- ZIO.runtime[ZEnv with AppTaskEnv]
       _ <-
         BlazeServerBuilder[AppTask](rts.platform.executor.asEC)
           .bindHttp(apiConfig.port, apiConfig.host)

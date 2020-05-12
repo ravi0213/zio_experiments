@@ -12,7 +12,7 @@ import zio.logging._
 import zio.telemetry.opentracing.OpenTracing
 
 object Main extends App {
-  type ServiceEnv = Clock with IdGenerator with Logging with OpenTracing
+  type Env = Clock with IdGenerator with Logging with OpenTracing
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
     val config = AppConfig.live
@@ -32,7 +32,7 @@ object Main extends App {
         ref <- Ref.make(Map.empty[User.Id, User])
         _ <-
           Server
-            .serve[ServiceEnv](config.api)
+            .serve[Env](config.api)
             .provideCustomLayer(envs.userProgramEnv ++ ZLayer.succeed(Services.userService(ref)))
       } yield ())
         .onError {
