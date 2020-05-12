@@ -11,6 +11,15 @@ lazy val buildInfoSettings = Seq(
   buildInfoPackage := "io.abp.users"
 )
 
+lazy val dockerSettings = Seq(
+  name := "users",
+  dockerBaseImage := "openjdk:11-jre",
+  dockerExposedPorts ++= Seq(8080),
+  packageName in Docker := name.value,
+  version in Docker := version.value,
+  dockerAliases ++= Seq(dockerAlias.value.withTag(Option("latest")))
+)
+
 lazy val root = (project in file("."))
   .settings(
     name := "zio_experiments",
@@ -19,11 +28,12 @@ lazy val root = (project in file("."))
   .aggregate(users)
 
 lazy val users = (project in file("users"))
-  .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(BuildInfoPlugin, DockerPlugin, AshScriptPlugin)
   .settings(
     name := "users",
     resolvers += Resolver.sonatypeRepo("releases"),
     buildInfoSettings,
+    dockerSettings,
     libraryDependencies ++= circe,
     libraryDependencies ++= http4s,
     libraryDependencies ++= jaegerTracer,
