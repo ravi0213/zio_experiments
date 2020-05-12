@@ -3,13 +3,12 @@ package io.abp.users
 import io.abp.users.config.AppConfig
 import io.abp.users.domain.User
 import io.abp.users.effects.idGenerator.IdGenerator
-import io.abp.users.effects.log._
-import io.abp.users.effects.log.Logging
 import io.abp.users.modules.Environments
 import io.abp.users.modules.Server
 import io.abp.users.modules.Services
 import zio._
 import zio.clock.Clock
+import zio.logging._
 import zio.telemetry.opentracing.OpenTracing
 
 object Main extends App {
@@ -28,7 +27,7 @@ object Main extends App {
       config: AppConfig,
       envs: Environments
   ): ZIO[ZEnv with Logging, Throwable, Unit] = {
-    info("Application resources loaded, running Application") *>
+    log.info("Application resources loaded, running Application") *>
       (for {
         ref <- Ref.make(Map.empty[User.Id, User])
         _ <-
@@ -38,8 +37,8 @@ object Main extends App {
       } yield ())
         .onError {
           case e =>
-            error(e)("Couldn't start the application")
-        } *> info("Server running")
+            log.error("Couldn't start the application", e)
+        } *> log.info("Server running")
   }
 
 }

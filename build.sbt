@@ -27,6 +27,7 @@ lazy val users = (project in file("users"))
     libraryDependencies ++= circe,
     libraryDependencies ++= http4s,
     libraryDependencies ++= jaegerTracer,
+    libraryDependencies += logback,
     libraryDependencies ++= openTracing,
     libraryDependencies ++= zio,
     libraryDependencies ++= zipkin,

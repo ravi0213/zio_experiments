@@ -2,10 +2,10 @@ package io.abp.users.services
 
 import io.abp.users.domain.{User => DUser}
 import io.abp.users.effects.idGenerator.IdGenerator
-import io.abp.users.effects.log
 import users.User.Error._
 import zio._
 import zio.clock.Clock
+import zio.logging._
 import zio.telemetry.opentracing.OpenTracing
 
 package object users {
@@ -39,7 +39,7 @@ package object users {
     def inMemory(input: Map[DUser.Id, DUser] = Map()): Service[IdGenerator with Clock] =
       InMemory.interpreter(input)
     def live(users: Ref[Map[DUser.Id, DUser]]): Service[IdGenerator with Clock] = Live.interpreter(users)
-    def logging[Env](underlying: User.Service[Env]): Service[Env with log.Logging] =
+    def logging[Env](underlying: User.Service[Env]): Service[Env with Logging] =
       Logging.interpreter[Env](underlying)
     def tracing[Env](underlying: User.Service[Env]): Service[Env with OpenTracing] =
       Tracing.interpreter[Env](underlying)

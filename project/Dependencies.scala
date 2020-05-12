@@ -5,6 +5,7 @@ object Dependencies {
     val circe = "0.13.0"
     val http4s = "0.21.4"
     val jaeger = "1.2.0"
+    val logback = "1.2.3"
     val opentracing = "0.33.0"
     val zio = "1.0.0-RC18-2"
     val zioOpenTracing = "0.3.0"
@@ -36,6 +37,7 @@ object Dependencies {
     "dev.zio" %% "zio" % Versions.zio,
     "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC13",
     "dev.zio" %% "zio-logging" % "0.2.8",
+    "dev.zio" %% "zio-logging-slf4j" % "0.2.8",
     "dev.zio" %% "zio-test" % Versions.zio % Test,
     "dev.zio" %% "zio-test-sbt" % Versions.zio % Test
   )
@@ -55,6 +57,8 @@ object Dependencies {
   lazy val circe = Seq(
     "io.circe" %% "circe-generic-extras" % Versions.circe
   )
+
+  lazy val logback = "ch.qos.logback" % "logback-classic" % Versions.logback
 
   // Tests
   lazy val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % Test

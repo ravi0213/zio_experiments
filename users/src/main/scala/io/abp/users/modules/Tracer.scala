@@ -1,17 +1,30 @@
 package io.abp.users.telemetry
 
+import io.abp.users.config.TelemetryConfig
+import io.abp.users.config.TelemetryConfig.TracerConfig
 import io.jaegertracing.Configuration
 import io.jaegertracing.internal.JaegerTracer
 import io.jaegertracing.internal.samplers.ConstSampler
 import io.jaegertracing.zipkin.ZipkinV2Reporter
 import io.opentracing.mock.MockTracer
 import org.apache.http.client.utils.URIBuilder
+import zio._
+import zio.clock._
+import zio.telemetry.opentracing.OpenTracing
 import zipkin2.reporter.AsyncReporter
 import zipkin2.reporter.okhttp3.OkHttpSender
 
 object Tracer {
 
-  def jaeger(
+  def apply(config: TelemetryConfig): ULayer[OpenTracing] = {
+    val tracer = config.tracerConfig match {
+      case TracerConfig.Mock                            => Tracer.mock
+      case TracerConfig.JaegerConfig(host, serviceName) => Tracer.jaeger(host, serviceName)
+    }
+    (Clock.live >>> OpenTracing.live(tracer))
+  }
+
+  private def jaeger(
       host: String,
       serviceName: String
   ): JaegerTracer = {
@@ -25,5 +38,5 @@ object Tracer {
       .build
   }
 
-  val mock = new MockTracer
+  private val mock = new MockTracer
 }
