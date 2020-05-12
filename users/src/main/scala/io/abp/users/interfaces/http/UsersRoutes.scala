@@ -21,10 +21,13 @@ class UsersRoutes[Env: Tagged] {
   import dsl._
 
   private val pathPrefix = Root / "users"
+
   val routes = HttpRoutes.of[AppTask] {
+
     case GET -> `pathPrefix` =>
       UserProgram.getAllUsers
         .foldM(errorHandler, users => Ok(AllUsersResponse(users)))
+
     case GET -> `pathPrefix` / id =>
       UserProgram
         .getUser(User.Id(id))

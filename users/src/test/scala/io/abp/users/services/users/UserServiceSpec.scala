@@ -14,7 +14,7 @@ import zio.test.environment._
 import zio.test.Gen._
 
 object UserServiceSpec extends DefaultRunnableSpec {
-  def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.live(input)
+  def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.inMemory(input)
 
   override def spec =
     suite("UserService")(

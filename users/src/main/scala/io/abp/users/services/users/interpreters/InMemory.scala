@@ -8,23 +8,24 @@ import zio._
 import zio.clock._
 
 object InMemory {
-  def interpreter(input: Map[User.Id, User]) = {
+  def interpreter(usersRef: Ref[Map[User.Id, User]]) = {
     type WithIdAndClock = IdGenerator with Clock
     new Service[WithIdAndClock] {
-      private var users: Map[User.Id, User] = input
-
       final def all: ZIO[WithIdAndClock, GetError, List[User]] =
         for {
+          users <- usersRef.get
           result <- IO.succeed(users.values.toList)
         } yield result
 
       final def get(id: User.Id): ZIO[WithIdAndClock, GetError, Option[User]] =
         for {
+          users <- usersRef.get
           result <- IO.succeed(users.get(id))
         } yield result
 
       final def getByName(name: String): ZIO[WithIdAndClock, GetByNameError, List[User]] =
         for {
+          users <- usersRef.get
           result <- IO.succeed(users.collect {
             case (_, user) if user.name.equals(name) => user
           }.toList)
@@ -35,11 +36,9 @@ object InMemory {
           id <- userId
           //TODO: use UTC instead of system timezone
           createdAt <- currentDateTime.mapError(CreateError.TechnicalError)
-          user <- IO.succeed[User](User(id, name, createdAt))
-        } yield {
-          users = users + (id -> user)
-          user
-        }
+          user <- IO.succeed(User(id, name, createdAt))
+          _ <- usersRef.update(_ + (id -> user))
+        } yield user
     }
   }
 }

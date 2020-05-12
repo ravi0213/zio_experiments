@@ -5,5 +5,5 @@ import io.abp.users.services.users._
 import zio.Ref
 
 object Services {
-  def userService(usersRef: Ref[Map[DUser.Id, DUser]]) = User.tracing(User.logging(User.live(usersRef)))
+  def userService(usersRef: Ref[Map[DUser.Id, DUser]]) = User.tracing(User.logging(User.inMemory(usersRef)))
 }

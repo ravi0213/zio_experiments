@@ -29,7 +29,7 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
   type Env = Clock with IdGenerator
   type AppTask[A] = ZIO[Env with users.UserService[Env], Throwable, A]
 
-  def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.live(input)
+  def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.inMemory(input)
 
   implicit val circeConfig: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
   implicit val userIdDecoder: Decoder[User.Id] = deriveConfiguredDecoder[User.Id]

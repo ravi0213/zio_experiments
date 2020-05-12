@@ -36,9 +36,8 @@ package object users {
 
     import interpreters._
 
-    def inMemory(input: Map[DUser.Id, DUser] = Map()): Service[IdGenerator with Clock] =
-      InMemory.interpreter(input)
-    def live(users: Ref[Map[DUser.Id, DUser]]): Service[IdGenerator with Clock] = Live.interpreter(users)
+    def inMemory(users: Ref[Map[DUser.Id, DUser]]): Service[IdGenerator with Clock] =
+      InMemory.interpreter(users)
     def logging[Env](underlying: User.Service[Env]): Service[Env with Logging] =
       Logging.interpreter[Env](underlying)
     def tracing[Env](underlying: User.Service[Env]): Service[Env with OpenTracing] =
