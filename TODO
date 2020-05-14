@@ -1,4 +1,3 @@
-- use direnv for config
 - write program tests
 - evaluate zio stm
 - add postgres
