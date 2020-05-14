@@ -17,6 +17,7 @@ Trying out ZIO
 The users folder contains the users service project.
 The folder tree looks as follows:
 
+```
 users
 ├── config
 │   └── AppConfig.scala
@@ -37,28 +38,29 @@ users
     └── users
         ├── interpreters
         └── UserService.scala
+```
 
-### Config
+#### Config
 The config package contains all configurations for the microservice including api parameters, client libraries, logging, telemetry tracer, etc.
 
-### Domain
+#### Domain
 The domain package contains objects that are relevant for the internal domain of the microservice.
 Domain-driven design (DDD) is a way to structure code to match a business domain (in this case users).
 Domain objects are encoding of entities for the specifc domain represented by the microservice (e.g. users).
 
-### Effects
+#### Effects
 The effects package contains ZIO effects that extend the library provided set of effects (e.g. random, clock, etc).
 
 For example, IdGenerator is a new effect with a custom implementation to generate entity ids.
 
-### Interfaces
+#### Interfaces
 The interfaces package contains inbound interfaces to the external world (external from the microservice point of view).
 For example, http interfaces can contain REST API routes or GraphQL routes.
 Another example would be kafka consumers which take input from a kafka topic and process them internally.
 
 This package also contains things like protocol definition, parsing of the requests/events, error conversion from the internal errors to errors that are relevant to clients of the microservice, etc.
 
-### Modules
+#### Modules
 The modules package contains the code to instantiate the components (also called object dependencies) of the microservice.
 This package assumes that the dependency injection technique.
 
@@ -67,7 +69,7 @@ In this case, the Logger module builds a Logger effect implementing the Logging 
 
 There could be modules to instantiate a kafka consumer/publisher, an http client, a tracer, an http server, etc.
 
-### Programs
+#### Programs
 The programs package contains the business or domain logic of the microservice.
 The business logic is constructed using building blocks (called services) that are combined to define business rules.
 
@@ -91,7 +93,7 @@ There are two building blocks in the above example:
 
 They could be part of the same service or two different services interfaces.
 
-### Services
+#### Services
 The services package contains the building blocks for the programs.
 They usually wrap a client library to communicate with an external microservice, a remote datastorage, a local datastorage, etc.
 
@@ -154,7 +156,7 @@ With cats effect, there was always a debate about what type of errors belong on 
 
 ZIO changed that by creating a bifunctor that accepts an error with user-defined type E and a success type A.
 
-### Main
+#### Main
 The Main.scala file is where all the modules are called to start all the components of the application.
 
 ## Local development
