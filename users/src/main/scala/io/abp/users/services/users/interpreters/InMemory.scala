@@ -11,7 +11,7 @@ object InMemory {
   def interpreter(usersRef: Ref[Map[User.Id, User]]) = {
     type WithIdAndClock = IdGenerator with Clock
     new Service[WithIdAndClock] {
-      final def all: ZIO[WithIdAndClock, GetError, List[User]] =
+      final def all: ZIO[WithIdAndClock, AllError, List[User]] =
         for {
           users <- usersRef.get
           result <- IO.succeed(users.values.toList)

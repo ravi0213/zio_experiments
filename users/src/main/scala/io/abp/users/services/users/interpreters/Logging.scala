@@ -10,7 +10,7 @@ object Logging {
   def interpreter[Env](underlying: Service[Env]): Service[Env with Logging] = {
     type WithLogging = Env with Logging
     new Service[WithLogging] {
-      final def all: ZIO[WithLogging, GetError, List[User]] =
+      final def all: ZIO[WithLogging, AllError, List[User]] =
         underlying.all
           .foldM(
             e => log.error(s"Couldn't get all users. error: $e", Cause.fail(e)) *> ZIO.fail(e),

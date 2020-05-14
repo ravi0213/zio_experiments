@@ -13,13 +13,17 @@ package object users {
 
   object User {
     trait Service[Env] extends Serializable {
-      def all: ZIO[Env, GetError, List[DUser]]
+      def all: ZIO[Env, AllError, List[DUser]]
       def get(id: DUser.Id): ZIO[Env, GetError, Option[DUser]]
       def getByName(name: String): ZIO[Env, GetByNameError, List[DUser]]
       def create(name: String): ZIO[Env, CreateError, DUser]
     }
     sealed trait Error extends Throwable
     object Error {
+      sealed trait AllError extends Error
+      object AllError {
+        case class TechnicalError(cause: Throwable) extends AllError
+      }
       sealed trait GetError extends Error
       object GetError {
         case class TechnicalError(cause: Throwable) extends GetError
@@ -55,6 +59,6 @@ package object users {
   def createUser[Env: Tagged](name: String): ZIO[Env with UserService[Env], CreateError, DUser] =
     ZIO.accessM(_.get.create(name))
 
-  def allUsers[Env: Tagged](): ZIO[Env with UserService[Env], GetError, List[DUser]] =
+  def allUsers[Env: Tagged](): ZIO[Env with UserService[Env], AllError, List[DUser]] =
     ZIO.accessM(_.get.all)
 }

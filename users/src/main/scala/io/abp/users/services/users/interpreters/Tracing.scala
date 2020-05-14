@@ -10,7 +10,7 @@ object Tracing {
   def interpreter[Env](underlying: Service[Env]): Service[Env with OpenTracing] = {
     type WithTracing = Env with OpenTracing
     new Service[WithTracing] {
-      final def all: ZIO[WithTracing, GetError, List[User]] =
+      final def all: ZIO[WithTracing, AllError, List[User]] =
         underlying.all
           .span("UserService - Get All Users")
 
