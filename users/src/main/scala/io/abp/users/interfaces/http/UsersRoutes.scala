@@ -16,7 +16,7 @@ import zio._
 import zio.interop.catz._
 
 class UsersRoutes[Env: Tagged] {
-  type AppTask[A] = ZIO[Env with UserService[Env], Throwable, A]
+  type AppTask[A] = RIO[Env with UserService[Env], A]
   val dsl: Http4sDsl[AppTask] = Http4sDsl[AppTask]
   import dsl._
 

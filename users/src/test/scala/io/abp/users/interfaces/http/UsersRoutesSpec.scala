@@ -28,7 +28,7 @@ import zio.test.environment._
 
 object UsersRoutesSpec extends DefaultRunnableSpec {
   type Env = Clock with IdGenerator
-  type AppTask[A] = ZIO[Env with users.UserService[Env], Throwable, A]
+  type AppTask[A] = RIO[Env with users.UserService[Env], A]
 
   def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.inMemory(input)
 

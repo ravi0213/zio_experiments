@@ -16,9 +16,9 @@ import zio.interop.catz._
 object Server {
   def serve[Env: Tagged](
       apiConfig: ApiConfig
-  ): ZIO[ZEnv with Env with UserService[Env], Throwable, Unit] = {
+  ): RIO[ZEnv with Env with UserService[Env], Unit] = {
     type AppTaskEnv = Env with UserService[Env]
-    type AppTask[A] = ZIO[AppTaskEnv, Throwable, A]
+    type AppTask[A] = RIO[AppTaskEnv, A]
 
     val timer = new Timers[AppTaskEnv]
     import timer._

@@ -27,7 +27,7 @@ object Main extends App {
       .fold(_ => 1, _ => 0)
   }
 
-  private def loadConfig: ZIO[ZEnv with Logging, Throwable, AppConfig] =
+  private def loadConfig: RIO[ZEnv with Logging, AppConfig] =
     AppConfig.loadFromEnv
       .attempt[Task]
       .flatMap {
@@ -41,7 +41,7 @@ object Main extends App {
   private def runApplication(
       config: AppConfig,
       envs: Environments
-  ): ZIO[ZEnv with Logging, Throwable, Unit] = {
+  ): RIO[ZEnv with Logging, Unit] = {
     log.info("Application resources loaded, running Application") *>
       (for {
         ref <- Ref.make(Map.empty[User.Id, User])

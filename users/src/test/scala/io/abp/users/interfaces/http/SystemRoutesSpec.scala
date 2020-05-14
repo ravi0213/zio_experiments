@@ -2,14 +2,12 @@ package io.abp.users.interfaces.http
 
 import org.http4s._
 import org.http4s.implicits._
+import zio._
 import zio.interop.catz._
 import zio.test._
 import zio.test.Assertion._
-import zio.ZIO
 
 object SystemRoutesSpec extends DefaultRunnableSpec {
-  type AppTask[A] = ZIO[Any, Throwable, A]
-
   override def spec =
     suite("SystemRoutes")(
       suite("Healthz route")(
@@ -30,13 +28,13 @@ object SystemRoutesSpec extends DefaultRunnableSpec {
       )
     )
 
-  private[this] val retHealthz: AppTask[Response[AppTask]] = {
-    val getHealthz = Request[AppTask](Method.GET, uri"/healthz")
-    SystemRoutes[AppTask]().routes.orNotFound(getHealthz)
+  private[this] val retHealthz: Task[Response[Task]] = {
+    val getHealthz = Request[Task](Method.GET, uri"/healthz")
+    SystemRoutes[Task]().routes.orNotFound(getHealthz)
   }
 
-  private[this] val retVersion: AppTask[Response[AppTask]] = {
-    val getVersion = Request[AppTask](Method.GET, uri"/version")
-    SystemRoutes[AppTask]().routes.orNotFound(getVersion)
+  private[this] val retVersion: Task[Response[Task]] = {
+    val getVersion = Request[Task](Method.GET, uri"/version")
+    SystemRoutes[Task]().routes.orNotFound(getVersion)
   }
 }
