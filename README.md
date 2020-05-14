@@ -77,7 +77,7 @@ For example, a (very simple) business rule could be "only create users if there 
 Notice that the above statement is very much dependent on the specific business need and would not necessarily apply to another business.
 In its simplest form, the above business rule would be translate into a program as follows:
 
-```
+```scala
 def createUser(name: String): F[ProgramError Either User.Id]
   for {
     result <- getUsersByName(name)
@@ -93,12 +93,14 @@ There are two building blocks in the above example:
 
 They could be part of the same service or two different services interfaces.
 
+Programs are called inside the interfaces package. A single program can be used both to process requests from an http api and events from a kafka consumers if both interfaces receive the same data. They are very important and quite difficult to get right as they provide the business functionalities of the microservice. When writing a new microservice, I usually start by designing the programs as well as the inbound interfaces (e.g. http, kafka, etc) and leave the implementations of services for last. Programs allow developers to think in terms of building blocks and simplify greatly the mental overhead when designing a new microservice.
+
 #### Services
 The services package contains the building blocks for the programs.
 They usually wrap a client library to communicate with an external microservice, a remote datastorage, a local datastorage, etc.
 
 For example, the user service provides the following interface that can be used as building blocks of our business logic:
-```
+```scala
 trait Service[F[_, _]] {
   def all: F[AllError, List[User]]
   def get(id: User.Id): F[GetError, Option[User]]
@@ -119,7 +121,7 @@ For example, we can create the following interpreters:
 The delegate pattern is used for all but the DefaultInterpreter. All other interpreters wrap an underlying interpreter implementing the service interface.
 
 For example, here is the UserService module:
-```
+```scala
 def userService(usersRef: Ref[Map[User.Id, User]]) =
   UserService.tracing(UserService.logging(UserService.inMemory(usersRef)))
 ```
@@ -136,7 +138,7 @@ These errors are then converted to ProgramErrors at the program level. The reaso
 If the errors were defined at the service level, all function calls would have to handle all these errors even though they might not ever happen in a specific function. Of course, I am assuming that we are following the good practice of defining all potential errors as a sealed trait.
 
 For example, if the service had the following errors and following interface:
-```
+```scala
 sealed trait UserServiceError extends Throwable
 object UserServiceError {
   case object NotFound extends UserServiceError
@@ -162,7 +164,7 @@ The Main.scala file is where all the modules are called to start all the compone
 ## Local development
 
 Run the project locally:
-```
+```bash
 sbt reStart
 ```
 
