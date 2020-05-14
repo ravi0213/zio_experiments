@@ -2,19 +2,43 @@ package io.abp.users.config
 
 import scala.concurrent.duration._
 
-import io.abp.users.config.LoggingConfig.LoggerConfig
+import cats.syntax.parallel._
+import ciris.{env, ConfigValue}
 import io.abp.users.config.TelemetryConfig.TracerConfig
 
-case class AppConfig(telemetry: TelemetryConfig, api: ApiConfig, logging: LoggingConfig)
+case class AppConfig(telemetry: TelemetryConfig, api: ApiConfig)
 case class ApiConfig(
     host: String,
     port: Int,
-    responseTimeout: FiniteDuration,
     logHeaders: Boolean,
-    logBody: Boolean
+    logBody: Boolean,
+    responseTimeout: FiniteDuration
 )
+object ApiConfig {
+  def loadFromEnv: ConfigValue[ApiConfig] =
+    (
+      env("API_HOST"),
+      env("API_PORT").as[Int],
+      env("API_LOG_HEADERS").as[Boolean],
+      env("API_LOG_BODY").as[Boolean],
+      env("API_RESPONSE_TIMEOUT").as[FiniteDuration]
+    ).parMapN(ApiConfig.apply)
+}
 case class TelemetryConfig(tracerConfig: TracerConfig)
 object TelemetryConfig {
+  def loadFromEnv: ConfigValue[TelemetryConfig] =
+    env("TELEMETRY_ENABLED").as[Boolean].flatMap { enabled =>
+      val tracerConfig =
+        if (enabled)
+          (
+            env("TELEMETRY_HOST"),
+            env("TELEMETRY_SERVICE_NAME")
+          ).parMapN(TelemetryConfig.TracerConfig.JaegerConfig)
+        else
+          ConfigValue.default(TelemetryConfig.TracerConfig.Mock)
+      tracerConfig.map(TelemetryConfig(_))
+    }
+
   sealed trait TracerConfig
   object TracerConfig {
     case object Mock extends TracerConfig
@@ -22,39 +46,10 @@ object TelemetryConfig {
   }
 }
 
-case class LoggingConfig(loggerConfig: LoggerConfig)
-object LoggingConfig {
-  sealed trait LoggerConfig
-  object LoggerConfig {
-    case object Mock extends LoggerConfig
-    case object Live extends LoggerConfig
-  }
-}
-
 object AppConfig {
-  def live =
-    AppConfig(
-      TelemetryConfig(TracerConfig.JaegerConfig("0.0.0.0:9411", "zio-experiments")),
-      api = ApiConfig(
-        host = "localhost",
-        port = 8080,
-        responseTimeout = 10.seconds,
-        logHeaders = true,
-        logBody = true
-      ),
-      logging = LoggingConfig(LoggerConfig.Live)
-    )
-
-  def mock =
-    AppConfig(
-      TelemetryConfig(TracerConfig.Mock),
-      api = ApiConfig(
-        host = "localhost",
-        port = 8080,
-        responseTimeout = 10.seconds,
-        logHeaders = true,
-        logBody = true
-      ),
-      logging = LoggingConfig(LoggerConfig.Mock)
-    )
+  def loadFromEnv: ConfigValue[AppConfig] =
+    (
+      TelemetryConfig.loadFromEnv,
+      ApiConfig.loadFromEnv
+    ).parMapN(AppConfig.apply)
 }

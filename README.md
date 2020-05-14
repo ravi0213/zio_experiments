@@ -168,7 +168,10 @@ Run the project locally:
 sbt reStart
 ```
 
-To use telemetry locally, start [Jaeger][jaeger] by running following command:
+To use telemetry locally,
+- Change the `TELEMETRY_ENABLED` variable to true in `.envrc`
+- Reload direnv with: `direnv allow` (if you are in sbt, you need to exit, execute direnv and restart sbt)
+- start [Jaeger][jaeger] by running following command:
 ```bash
 docker run -d --name jaeger \
   -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \

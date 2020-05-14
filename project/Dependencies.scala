@@ -3,6 +3,7 @@ import sbt._
 object Dependencies {
   object Versions {
     val circe = "0.13.0"
+    val ciris = "1.0.4"
     val http4s = "0.21.4"
     val jaeger = "1.2.0"
     val logback = "1.2.3"
@@ -16,6 +17,10 @@ object Dependencies {
     val betterMonadicFor = "0.3.1"
     val kindProjector = "0.11.0"
   }
+  lazy val ciris = Seq(
+    "is.cir" %% "ciris" % Versions.ciris,
+    "is.cir" %% "ciris-enumeratum" % Versions.ciris
+  )
   lazy val openTracing = Seq(
     "io.opentracing" % "opentracing-api" % Versions.opentracing,
     "io.opentracing" % "opentracing-mock" % Versions.opentracing,

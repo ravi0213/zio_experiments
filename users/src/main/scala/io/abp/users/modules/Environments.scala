@@ -8,7 +8,7 @@ import zio.console._
 import zio.random._
 
 class Environments(config: AppConfig) {
-  private val logger = Logger(config.logging)
+  private val logger = Logger.slf4jLogger
   private val tracer = Tracer(config.telemetry)
   private val defaultEnv = Clock.live ++ Console.live ++ Random.live
   val userProgramEnv = defaultEnv ++ logger ++ tracer ++ IdGenerator.live

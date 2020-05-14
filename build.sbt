@@ -35,6 +35,7 @@ lazy val users = (project in file("users"))
     buildInfoSettings,
     dockerSettings,
     libraryDependencies ++= circe,
+    libraryDependencies ++= ciris,
     libraryDependencies ++= http4s,
     libraryDependencies ++= jaegerTracer,
     libraryDependencies += logback,
