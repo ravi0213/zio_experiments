@@ -188,4 +188,4 @@ docker run -d --name jaeger \
 To check if it's running properly visit [Jaeger UI](http://localhost:16686/).
 More info can be found [here][jaeger-docker].
 
-Traces should look like the following: [UserRoutes - Create User trace](docs/tracing_exampl1.png)
+Traces should look like the following: [UserRoutes - Create User trace](docs/tracing_example1.png)
