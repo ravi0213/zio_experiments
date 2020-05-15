@@ -1,5 +1,7 @@
 package io.abp.users.interfaces.http
 
+import cats.arrow.FunctionK
+import dev.profunktor.tracer.{Http4sTracerDsl, TracedHttpRoute, Tracer}
 import io.abp.users.domain.User
 import io.abp.users.interfaces.http.UsersRoutes._
 import io.abp.users.programs.UserProgram
@@ -10,48 +12,65 @@ import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}
 import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 import org.http4s.circe.CirceEntityEncoder.circeEntityEncoder
-import org.http4s.dsl.Http4sDsl
+import org.http4s.server.Router
 import org.http4s.{HttpRoutes, Response}
 import zio._
 import zio.interop.catz._
+import zio.telemetry.opentracing.OpenTracing
 
-class UsersRoutes[Env: Tagged] {
-  type AppTask[A] = RIO[Env with UserService[Env], A]
-  val dsl: Http4sDsl[AppTask] = Http4sDsl[AppTask]
+class UsersRoutes[Env: Tagged](implicit tracer: Tracer[AppTask[Env, ?]]) {
+  //TODO: PR in profunktor/tracer repo for scala 2.13
+  val ZIOHttp4sTracerDsl = new Http4sTracerDsl[AppTask[Env, ?]] {
+    override val liftG: FunctionK[AppTask[Env, ?], AppTask[Env, ?]] = FunctionK.id[AppTask[Env, ?]]
+  }
+  val dsl = ZIOHttp4sTracerDsl
   import dsl._
 
-  private val pathPrefix = Root / "users"
+  private val PathPrefix = "/users"
 
-  val routes = HttpRoutes.of[AppTask] {
+  val routes = TracedHttpRoute[AppTask[Env, ?]] {
 
-    case GET -> `pathPrefix` =>
+    case GET -> Root using traceId =>
       UserProgram.getAllUsers
         .foldM(errorHandler, users => Ok(AllUsersResponse(users)))
+        .root(s"$traceId UserRoutes - Get All Users")
 
-    case GET -> `pathPrefix` / id =>
+    case GET -> Root / id using traceId =>
       UserProgram
         .getUser(User.Id(id))
         .foldM(errorHandler, user => Ok(GetUserResponse(user)))
+        .root(s"$traceId UserRoutes - Get User")
 
-    case request @ POST -> `pathPrefix` =>
-      request.as[CreateUserRequest].flatMap { req =>
+    case tr @ POST -> Root using traceId =>
+      tr.request.as[CreateUserRequest].flatMap { req =>
         UserProgram
           .createUser(req.name)
-          .foldM(errorHandler, id => Ok(CreateUserResponse(id)))
+          .foldM(
+            errorHandler,
+            id => Ok(CreateUserResponse(id))
+          )
+          .root(s"$traceId UserRoutes - Create User")
       }
   }
 
   //TODO: improve error handling
-  private def errorHandler: ProgramError => AppTask[Response[AppTask]] = {
+  private def errorHandler: ProgramError => AppTask[Env, Response[AppTask[Env, ?]]] = {
     case ProgramError.UserAlreadyExists => Conflict("User already exists")
     case ProgramError.UserError(_)      => InternalServerError()
     case ProgramError.ConsoleError(_)   => InternalServerError()
     case ProgramError.ClockError(_)     => InternalServerError()
   }
+
+  val v1Routes: HttpRoutes[AppTask[Env, ?]] = Router(
+    PathPrefix -> routes
+  )
 }
 
 object UsersRoutes {
-  def apply[Env: Tagged]: UsersRoutes[Env] = new UsersRoutes[Env]()
+  def apply[Env: Tagged](implicit tracer: Tracer[AppTask[Env, ?]]): UsersRoutes[Env] =
+    new UsersRoutes[Env]
+
+  type AppTask[Env, A] = RIO[Env with UserService[Env] with OpenTracing, A]
 
   final case class AllUsersResponse(users: List[User])
   final case class GetUserResponse(user: Option[User])

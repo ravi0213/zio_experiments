@@ -5,6 +5,7 @@ object Dependencies {
     val circe = "0.13.0"
     val ciris = "1.0.4"
     val http4s = "0.21.4"
+    val http4sTracer = "1.4.0-RC1"
     val jaeger = "1.2.0"
     val logback = "1.2.3"
     val opentracing = "0.33.0"
@@ -56,7 +57,8 @@ object Dependencies {
     "org.http4s" %% "http4s-core" % Versions.http4s,
     "org.http4s" %% "http4s-blaze-server" % Versions.http4s,
     "org.http4s" %% "http4s-dsl" % Versions.http4s,
-    "org.http4s" %% "http4s-circe" % Versions.http4s
+    "org.http4s" %% "http4s-circe" % Versions.http4s,
+    "dev.profunktor" %% "http4s-tracer" % Versions.http4sTracer
   )
 
   lazy val circe = Seq(

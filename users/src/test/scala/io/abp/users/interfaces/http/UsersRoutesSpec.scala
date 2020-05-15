@@ -2,6 +2,7 @@ package io.abp.users.interfaces.http
 
 import cats.instances.list._
 import cats.syntax.traverse._
+import dev.profunktor.tracer.Tracer
 import io.abp.users.domain.User
 import io.abp.users.effects.idGenerator._
 import io.abp.users.fixtures._
@@ -22,16 +23,19 @@ import org.http4s.implicits._
 import zio._
 import zio.clock._
 import zio.interop.catz._
+import zio.telemetry.opentracing.OpenTracing
 import zio.test._
 import zio.test.Assertion._
 import zio.test.environment._
 
 object UsersRoutesSpec extends DefaultRunnableSpec {
   type Env = Clock with IdGenerator
-  type AppTask[A] = RIO[Env with users.UserService[Env], A]
+  type AppTask[A] = RIO[Env with users.UserService[Env] with OpenTracing, A]
 
   def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.inMemory(input)
 
+  implicit val tracer = Tracer.create[AppTask]()
+  val userRoutes: HttpRoutes[AppTask] = UsersRoutes[Env].v1Routes
   implicit val circeConfig: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
   implicit val userIdDecoder: Decoder[User.Id] = deriveConfiguredDecoder[User.Id]
   implicit val userDecoder: Decoder[User] = deriveConfiguredDecoder[User]
@@ -53,7 +57,7 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
           val expected = user
           Ref.make(Map.empty[User.Id, User]).flatMap { ref =>
             (for {
-              response <- UsersRoutes[Env].routes.orNotFound(createUserRequest)
+              response <- userRoutes.orNotFound(createUserRequest)
               result <- response.as[CreateUserResponse]
             } yield assert(result.id)(equalTo(expected.id)))
               .provideLayer(envs.env ++ ZLayer.succeed(makeUserService(ref)))
@@ -72,7 +76,7 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
               Ref.make(Map.empty[User.Id, User]).flatMap {
                 ref =>
                   (for {
-                    userRoutes <- ZIO.succeed(UsersRoutes[Env].routes)
+                    userRoutes <- ZIO.succeed(userRoutes)
                     _ <-
                       users
                         .map(user => Map(("name" -> user.name)))
@@ -96,7 +100,7 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
 
               Ref.make((user +: users).toM).flatMap { ref =>
                 (for {
-                  userRoutes <- ZIO.succeed(UsersRoutes[Env].routes)
+                  userRoutes <- ZIO.succeed(userRoutes)
                   response <- userRoutes.orNotFound(getRequest(user.id))
                   result <- response.as[GetUserResponse]
                 } yield assert(result.user)(equalTo(expected)))
