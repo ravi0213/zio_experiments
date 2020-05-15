@@ -1,7 +1,6 @@
 package io.abp.users.modules
 
 import cats.arrow.FunctionK
-
 import cats.syntax.semigroupk._
 import dev.profunktor.tracer.instances.tracerlog
 import dev.profunktor.tracer.Tracer
@@ -18,15 +17,16 @@ import zio.interop.catz._
 import zio.telemetry.opentracing.OpenTracing
 
 object Server {
+  type AppTaskEnv[Env] = Env with UserService[Env] with OpenTracing
+
   def serve[Env: Tagged](
       apiConfig: ApiConfig
-  ): RIO[ZEnv with Env with UserService[Env] with OpenTracing, Unit] = {
-    type AppTaskEnv = Env with UserService[Env] with OpenTracing
-    type AppTask[A] = RIO[AppTaskEnv, A]
+  ): RIO[ZEnv with AppTaskEnv[Env], Unit] = {
+    type AppTask[A] = RIO[AppTaskEnv[Env], A]
 
     implicit val tracerLog = tracerlog.defaultLog[AppTask]
     implicit val tracer = Tracer.create[AppTask]()
-    val timer = new Timers[AppTaskEnv]
+    val timer = new Timers[AppTaskEnv[Env]]
     import timer._
 
     val middleware = { routes: HttpRoutes[AppTask] =>
@@ -44,7 +44,7 @@ object Server {
       routes <- ZIO.succeed(
         SystemRoutes[AppTask]().routes <+> UsersRoutes[Env].v1Routes
       )
-      implicit0(rts: Runtime[ZEnv with AppTaskEnv]) <- ZIO.runtime[ZEnv with AppTaskEnv]
+      implicit0(rts: Runtime[ZEnv with AppTaskEnv[Env]]) <- ZIO.runtime[ZEnv with AppTaskEnv[Env]]
       _ <-
         BlazeServerBuilder[AppTask](rts.platform.executor.asEC)
           .bindHttp(apiConfig.port, apiConfig.host)
