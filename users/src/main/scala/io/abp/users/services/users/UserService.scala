@@ -2,6 +2,7 @@ package io.abp.users.services
 
 import io.abp.users.domain.{User => DUser}
 import io.abp.users.effects.idGenerator.IdGenerator
+import io.abp.users.modules.Environments
 import users.User.Error._
 import zio._
 import zio.clock.Clock
@@ -40,12 +41,15 @@ package object users {
 
     import interpreters._
 
-    def inMemory(users: Ref[Map[DUser.Id, DUser]]): Service[IdGenerator with Clock] =
-      InMemory.interpreter(users)
-    def logging[Env](underlying: User.Service[Env]): Service[Env with Logging] =
-      Logging.interpreter[Env](underlying)
-    def tracing[Env](underlying: User.Service[Env]): Service[Env with OpenTracing] =
-      Tracing.interpreter[Env](underlying)
+    def inMemory(
+        envs: Environments,
+        users: Ref[Map[DUser.Id, DUser]]
+    ): ULayer[UserService[IdGenerator with Clock]] =
+      (envs.idGenerator ++ envs.clock) >>> ZLayer.succeed(InMemory.interpreter(users))
+    def logging[Env: Tagged]: ZLayer[UserService[Env], Nothing, UserService[Env with Logging]] =
+      ZLayer.fromService((underlying: User.Service[Env]) => Logging.interpreter[Env](underlying))
+    def tracing[Env: Tagged]: ZLayer[UserService[Env], Nothing, UserService[Env with OpenTracing]] =
+      ZLayer.fromService((underlying: User.Service[Env]) => Tracing.interpreter[Env](underlying))
   }
 
   import User.Error._
