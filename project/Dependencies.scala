@@ -62,7 +62,7 @@ object Dependencies {
   )
 
   lazy val circe = Seq(
-    "io.circe" %% "circe-generic-extras" % Versions.circe
+    "io.circe" %% "circe-generic" % Versions.circe
   )
 
   lazy val logback = "ch.qos.logback" % "logback-classic" % Versions.logback

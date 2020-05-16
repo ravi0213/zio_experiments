@@ -7,8 +7,7 @@ import io.abp.users.interfaces.http.UsersRoutes._
 import io.abp.users.programs.UserProgram
 import io.abp.users.programs.UserProgram.ProgramError
 import io.abp.users.services.users.UserService
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto._
+import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
 import org.http4s.circe.CirceEntityDecoder.circeEntityDecoder
 import org.http4s.circe.CirceEntityEncoder.circeEntityEncoder
@@ -77,13 +76,12 @@ object UsersRoutes {
   final case class CreateUserRequest(name: String)
   final case class CreateUserResponse(id: User.Id)
 
-  implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
-  implicit val userIdEncoder: Encoder[User.Id] = deriveConfiguredEncoder[User.Id]
-  implicit val userEncoder: Encoder[User] = deriveConfiguredEncoder[User]
-  implicit val allUsersRespEncoder: Encoder[AllUsersResponse] = deriveConfiguredEncoder[AllUsersResponse]
+  implicit val userIdEncoder: Encoder[User.Id] = deriveEncoder[User.Id]
+  implicit val userEncoder: Encoder[User] = deriveEncoder[User]
+  implicit val allUsersRespEncoder: Encoder[AllUsersResponse] = deriveEncoder[AllUsersResponse]
   implicit val createUserRespEncoder: Encoder[CreateUserResponse] =
-    deriveConfiguredEncoder[CreateUserResponse]
-  implicit val getUserRespEncoder: Encoder[GetUserResponse] = deriveConfiguredEncoder[GetUserResponse]
+    deriveEncoder[CreateUserResponse]
+  implicit val getUserRespEncoder: Encoder[GetUserResponse] = deriveEncoder[GetUserResponse]
 
-  implicit val createUserReqDecoder: Decoder[CreateUserRequest] = deriveConfiguredDecoder[CreateUserRequest]
+  implicit val createUserReqDecoder: Decoder[CreateUserRequest] = deriveDecoder[CreateUserRequest]
 }

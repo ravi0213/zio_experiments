@@ -12,8 +12,7 @@ import io.abp.users.services.users.{User => UserService}
 import io.abp.users.TestEnvironments
 import io.abp.users.utils._
 import io.circe.Decoder
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto._
+import io.circe.generic.semiauto._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
@@ -36,13 +35,12 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
 
   implicit val tracer = Tracer.create[AppTask]()
   val userRoutes: HttpRoutes[AppTask] = UsersRoutes[Env].v1Routes
-  implicit val circeConfig: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
-  implicit val userIdDecoder: Decoder[User.Id] = deriveConfiguredDecoder[User.Id]
-  implicit val userDecoder: Decoder[User] = deriveConfiguredDecoder[User]
-  implicit val allUsersResponseDecoder: Decoder[AllUsersResponse] = deriveConfiguredDecoder[AllUsersResponse]
+  implicit val userIdDecoder: Decoder[User.Id] = deriveDecoder[User.Id]
+  implicit val userDecoder: Decoder[User] = deriveDecoder[User]
+  implicit val allUsersResponseDecoder: Decoder[AllUsersResponse] = deriveDecoder[AllUsersResponse]
   implicit val createUserResponseDecoder: Decoder[CreateUserResponse] =
-    deriveConfiguredDecoder[CreateUserResponse]
-  implicit val getUserResponseDecoder: Decoder[GetUserResponse] = deriveConfiguredDecoder[GetUserResponse]
+    deriveDecoder[CreateUserResponse]
+  implicit val getUserResponseDecoder: Decoder[GetUserResponse] = deriveDecoder[GetUserResponse]
   case class AllUsersResponse(users: List[User])
   case class CreateUserResponse(id: User.Id)
   case class GetUserResponse(user: User)
