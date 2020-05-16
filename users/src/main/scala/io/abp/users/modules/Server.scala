@@ -12,6 +12,7 @@ import org.http4s._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.{AutoSlash, CORS, Logger => RequestResponseLogger}
+import org.http4s.server.Router
 import zio._
 import zio.interop.catz._
 import zio.telemetry.opentracing.OpenTracing
@@ -42,13 +43,19 @@ object Server {
 
     for {
       routes <- ZIO.succeed(
-        SystemRoutes[AppTask]().routes <+> UsersRoutes[Env].v1Routes
+        SystemRoutes[AppTask]().routes <+> UsersRoutes[Env].prefixedRoutes
+      )
+      router <- ZIO.succeed(
+        Router(
+          "/" -> routes,
+          "/v1" -> routes
+        )
       )
       implicit0(rts: Runtime[ZEnv with AppTaskEnv[Env]]) <- ZIO.runtime[ZEnv with AppTaskEnv[Env]]
       _ <-
         BlazeServerBuilder[AppTask](rts.platform.executor.asEC)
           .bindHttp(apiConfig.port, apiConfig.host)
-          .withHttpApp(middleware(routes))
+          .withHttpApp(middleware(router))
           .serve
           .compile
           .drain

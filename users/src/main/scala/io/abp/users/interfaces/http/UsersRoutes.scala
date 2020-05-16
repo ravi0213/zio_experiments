@@ -60,7 +60,7 @@ class UsersRoutes[Env: Tagged](implicit tracer: Tracer[AppTask[Env, ?]]) {
     case ProgramError.ClockError(_)     => InternalServerError()
   }
 
-  val v1Routes: HttpRoutes[AppTask[Env, ?]] = Router(
+  val prefixedRoutes: HttpRoutes[AppTask[Env, ?]] = Router(
     PathPrefix -> routes
   )
 }
@@ -84,4 +84,5 @@ object UsersRoutes {
   implicit val getUserRespEncoder: Encoder[GetUserResponse] = deriveEncoder[GetUserResponse]
 
   implicit val createUserReqDecoder: Decoder[CreateUserRequest] = deriveDecoder[CreateUserRequest]
+
 }
