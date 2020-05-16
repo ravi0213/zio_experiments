@@ -48,7 +48,7 @@ object Main extends App {
         _ <-
           Server
             .serve[Env](config.api)
-            .provideCustomLayer(envs.userProgramEnv ++ ZLayer.succeed(Services.userService(ref)))
+            .provideCustomLayer(envs.userProgramEnv ++ ZLayer.succeed(Services.userService(ref, config)))
       } yield ())
         .onError {
           case e =>

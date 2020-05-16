@@ -1,5 +1,6 @@
 package io.abp.users.services
 
+import io.abp.users.config.AppConfig
 import io.abp.users.domain.{User => DUser}
 import io.abp.users.effects.idGenerator.IdGenerator
 import users.User.Error._
@@ -44,8 +45,8 @@ package object users {
       InMemory.interpreter(users)
     def logging[Env](underlying: User.Service[Env]): Service[Env with Logging] =
       Logging.interpreter[Env](underlying)
-    def tracing[Env](underlying: User.Service[Env]): Service[Env with OpenTracing] =
-      Tracing.interpreter[Env](underlying)
+    def tracing[Env](underlying: User.Service[Env], config: AppConfig): Service[Env with OpenTracing] =
+      Tracing.interpreter[Env](underlying, config)
   }
 
   import User.Error._
