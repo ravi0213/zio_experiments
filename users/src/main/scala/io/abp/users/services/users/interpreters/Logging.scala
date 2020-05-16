@@ -7,17 +7,17 @@ import zio._
 import zio.logging._
 
 object Logging {
-  def interpreter[Env](underlying: Service[Env]): Service[Env with Logging] = {
-    type WithLogging = Env with Logging
-    new Service[WithLogging] {
-      final def all: ZIO[WithLogging, AllError, List[User]] =
+  type WithLogging[Env] = Env with Logging
+  def interpreter[Env](underlying: Service[Env]): Service[WithLogging[Env]] = {
+    new Service[WithLogging[Env]] {
+      final def all: ZIO[WithLogging[Env], AllError, List[User]] =
         underlying.all
           .foldM(
             e => log.error(s"Couldn't get all users. error: $e", Cause.fail(e)) *> ZIO.fail(e),
             users => log.info(s"Successfully got users $users") *> UIO.succeed(users)
           )
 
-      final def get(id: User.Id): ZIO[WithLogging, GetError, Option[User]] =
+      final def get(id: User.Id): ZIO[WithLogging[Env], GetError, Option[User]] =
         underlying
           .get(id)
           .foldM(
@@ -25,7 +25,7 @@ object Logging {
             user => log.info(s"Successfully got user $user") *> UIO.succeed(user)
           )
 
-      final def getByName(name: String): ZIO[WithLogging, GetByNameError, List[User]] =
+      final def getByName(name: String): ZIO[WithLogging[Env], GetByNameError, List[User]] =
         underlying
           .getByName(name)
           .foldM(
@@ -35,7 +35,7 @@ object Logging {
 
       final def create(
           name: String
-      ): ZIO[WithLogging, CreateError, User] =
+      ): ZIO[WithLogging[Env], CreateError, User] =
         underlying
           .create(name)
           .foldM(
