@@ -35,7 +35,9 @@ object InMemory {
         for {
           id <- userId
           //TODO: use UTC instead of system timezone
-          createdAt <- currentDateTime.mapError(CreateError.TechnicalError)
+          createdAt <- currentDateTime.mapError(error =>
+            CreateError.TechnicalError("Couldn't get current datetime", Some(error))
+          )
           user <- IO.succeed(User(id, name, createdAt))
           _ <- usersRef.update(_ + (id -> user))
         } yield user

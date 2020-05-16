@@ -1,5 +1,8 @@
 package io.abp.users.services
 
+import cats.instances.string.catsStdShowForString
+import cats.Show
+import cats.syntax.show._
 import io.abp.users.config.AppConfig
 import io.abp.users.domain.{User => DUser}
 import io.abp.users.effects.idGenerator.IdGenerator
@@ -23,19 +26,35 @@ package object users {
     object Error {
       sealed trait AllError extends Error
       object AllError {
-        case class TechnicalError(cause: Throwable) extends AllError
+        case class TechnicalError(description: String, cause: Option[Throwable] = None)
+            extends Exception(description, cause.orNull)
+            with AllError
       }
       sealed trait GetError extends Error
       object GetError {
-        case class TechnicalError(cause: Throwable) extends GetError
+        case class TechnicalError(description: String, cause: Option[Throwable] = None)
+            extends Exception(description, cause.orNull)
+            with GetError
       }
       sealed trait GetByNameError extends Error
       object GetByNameError {
-        case class TechnicalError(cause: Throwable) extends GetByNameError
+        case class TechnicalError(description: String, cause: Option[Throwable] = None)
+            extends Exception(description, cause.orNull)
+            with GetByNameError
       }
       sealed trait CreateError extends Error
       object CreateError {
-        case class TechnicalError(cause: Throwable) extends CreateError
+        case class TechnicalError(description: String, cause: Option[Throwable] = None)
+            extends Exception(description, cause.orNull)
+            with CreateError
+      }
+
+      implicit val show: Show[Error] = Show.show {
+        case AllError.TechnicalError(description, _) => show"AllError.TechnicalError: $description"
+        case GetError.TechnicalError(description, _) => show"GetError.TechnicalError: $description"
+        case GetByNameError.TechnicalError(description, _) =>
+          show"GetByNameError.TechnicalError: $description"
+        case CreateError.TechnicalError(description, _) => show"CreateError.TechnicalError: $description"
       }
     }
 
