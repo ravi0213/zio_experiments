@@ -1,6 +1,7 @@
 package io.abp.users.modules
 
 import cats.arrow.FunctionK
+import cats.data.Kleisli
 import cats.syntax.semigroupk._
 import dev.profunktor.tracer.instances.tracerlog
 import dev.profunktor.tracer.Tracer
@@ -11,6 +12,7 @@ import io.abp.users.services.users.UserService
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.server.middleware.authentication.challenged
 import org.http4s.server.middleware.{AutoSlash, CORS, Logger => RequestResponseLogger}
 import org.http4s.server.Router
 import zio._
@@ -30,6 +32,17 @@ object Server {
     val timer = new Timers[AppTaskEnv[Env]]
     import timer._
 
+    val authUser: Kleisli[AppTask, Request[AppTask], Either[Challenge, AuthedRequest[AppTask, Challenge]]] =
+      Kleisli(request => {
+        ZIO.succeed(request.headers.get(headers.Authorization) match {
+          case None =>
+            Left(Challenge("", ""))
+          case Some(authHeader) =>
+            //TODO: Implement a proper token retrieval mechanism with jwt
+            Right(AuthedRequest(Challenge("", "", Map("token" -> authHeader.value)), request))
+        })
+      })
+
     val middleware = { routes: HttpRoutes[AppTask] =>
       AutoSlash(routes)
     } andThen { routes: HttpRoutes[AppTask] =>
@@ -41,9 +54,12 @@ object Server {
       Tracer[AppTask].middleware(routes: HttpApp[AppTask], false, false)
     }
 
+    val prefixedUsersRoutes =
+      Router(UsersRoutes.PathPrefix -> challenged(authUser)(UsersRoutes[Env].routes))
+
     for {
       v1Routes <- ZIO.succeed(
-        SystemRoutes[AppTask]().routes <+> UsersRoutes[Env].prefixedRoutes
+        SystemRoutes[AppTask]().routes <+> prefixedUsersRoutes
       )
       //v2Routes <- ZIO.succeed(
       //  v2.SystemRoutes[AppTask]().routes <+> v2.UsersRoutes[Env].prefixedRoutes
