@@ -1,6 +1,6 @@
 package io.abp.users.config
 
-import scala.concurrent.duration._
+//import scala.concurrent.duration._
 
 import cats.syntax.parallel._
 import ciris.{env, ConfigValue}
@@ -28,8 +28,8 @@ case class ApiConfig(
     host: String,
     port: Int,
     logHeaders: Boolean,
-    logBody: Boolean,
-    responseTimeout: FiniteDuration
+    logBody: Boolean
+    //responseTimeout: FiniteDuration
 )
 object ApiConfig {
   def loadFromEnv: ConfigValue[ApiConfig] =
@@ -37,8 +37,8 @@ object ApiConfig {
       env("API_HOST"),
       env("API_PORT").as[Int],
       env("API_LOG_HEADERS").as[Boolean],
-      env("API_LOG_BODY").as[Boolean],
-      env("API_RESPONSE_TIMEOUT").as[FiniteDuration]
+      env("API_LOG_BODY").as[Boolean]
+      // env("API_RESPONSE_TIMEOUT").as[FiniteDuration]
     ).parMapN(ApiConfig.apply)
 }
 case class TelemetryConfig(tracerConfig: TracerConfig)
