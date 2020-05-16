@@ -42,13 +42,17 @@ object Server {
     }
 
     for {
-      routes <- ZIO.succeed(
+      v1Routes <- ZIO.succeed(
         SystemRoutes[AppTask]().routes <+> UsersRoutes[Env].prefixedRoutes
       )
+      //v2Routes <- ZIO.succeed(
+      //  v2.SystemRoutes[AppTask]().routes <+> v2.UsersRoutes[Env].prefixedRoutes
+      //)
       router <- ZIO.succeed(
         Router(
-          "/" -> routes,
-          "/v1" -> routes
+          "/" -> v1Routes, //This would always point to the oldest supported version
+          "/v1" -> v1Routes
+          //"/v2" -> v2Routes
         )
       )
       implicit0(rts: Runtime[ZEnv with AppTaskEnv[Env]]) <- ZIO.runtime[ZEnv with AppTaskEnv[Env]]
