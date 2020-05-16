@@ -24,6 +24,7 @@ object TestEnvironments {
 
   val config =
     AppConfig(
+      Environment.Local,
       TelemetryConfig(TelemetryConfig.TracerConfig.Mock),
       api = ApiConfig(
         host = "localhost",
