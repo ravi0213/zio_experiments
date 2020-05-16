@@ -4,9 +4,26 @@ import scala.concurrent.duration._
 
 import cats.syntax.parallel._
 import ciris.{env, ConfigValue}
+import enumeratum.EnumEntry.Hyphencase
+import enumeratum.{CirisEnum, Enum, EnumEntry}
 import io.abp.users.config.TelemetryConfig.TracerConfig
 
-case class AppConfig(telemetry: TelemetryConfig, api: ApiConfig)
+case class AppConfig(environment: Environment, telemetry: TelemetryConfig, api: ApiConfig)
+
+sealed abstract class Environment extends EnumEntry with Hyphencase {
+  val name = this.entryName
+}
+
+object Environment extends Enum[Environment] with CirisEnum[Environment] {
+  case object Local extends Environment
+  case object Staging extends Environment
+  case object Production extends Environment
+
+  override val values = findValues
+
+  def loadFromEnv: ConfigValue[Environment] = env("ENVIRONMENT").as[Environment]
+}
+
 case class ApiConfig(
     host: String,
     port: Int,
@@ -49,6 +66,7 @@ object TelemetryConfig {
 object AppConfig {
   def loadFromEnv: ConfigValue[AppConfig] =
     (
+      Environment.loadFromEnv,
       TelemetryConfig.loadFromEnv,
       ApiConfig.loadFromEnv
     ).parMapN(AppConfig.apply)
