@@ -70,15 +70,15 @@ package object users {
 
   import User.Error._
 
-  def getUser[Env: Tag](id: DUser.Id): ZIO[Env with UserService[Env], GetError, Option[DUser]] =
+  def getUser[Env: Tagged](id: DUser.Id): ZIO[Env with UserService[Env], GetError, Option[DUser]] =
     ZIO.accessM(_.get.get(id))
 
-  def getUsersByName[Env: Tag](name: String): ZIO[Env with UserService[Env], GetByNameError, List[DUser]] =
+  def getUsersByName[Env: Tagged](name: String): ZIO[Env with UserService[Env], GetByNameError, List[DUser]] =
     ZIO.accessM(_.get.getByName(name))
 
-  def createUser[Env: Tag](name: String): ZIO[Env with UserService[Env], CreateError, DUser] =
+  def createUser[Env: Tagged](name: String): ZIO[Env with UserService[Env], CreateError, DUser] =
     ZIO.accessM(_.get.create(name))
 
-  def allUsers[Env: Tag](): ZIO[Env with UserService[Env], AllError, List[DUser]] =
+  def allUsers[Env: Tagged](): ZIO[Env with UserService[Env], AllError, List[DUser]] =
     ZIO.accessM(_.get.all)
 }

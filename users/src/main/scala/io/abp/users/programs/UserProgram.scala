@@ -15,7 +15,7 @@ object UserProgram {
 
   //The existence check wouldn't work in a concurrent system. We need semantic locking.
   //TODO: explore ZIO.STM and ZIO.Ref
-  def createUser[Env: Tag](name: String): ZIO[ProgramEnv[Env], ProgramError, User.Id] =
+  def createUser[Env: Tagged](name: String): ZIO[ProgramEnv[Env], ProgramError, User.Id] =
     (for {
       result <- getUsersByName(name).mapError(ProgramError.UserError)
       user <-
@@ -23,16 +23,16 @@ object UserProgram {
         else ZIO.fail(ProgramError.UserAlreadyExists)
     } yield user.id)
 
-  def getUser[Env: Tag](id: User.Id): ZIO[ProgramEnv[Env], ProgramError, Option[User]] =
+  def getUser[Env: Tagged](id: User.Id): ZIO[ProgramEnv[Env], ProgramError, Option[User]] =
     users
       .getUser(id)
       .mapError(ProgramError.UserError)
 
-  def getAllUsers[Env: Tag](): ZIO[ProgramEnv[Env], ProgramError, List[User]] =
+  def getAllUsers[Env: Tagged](): ZIO[ProgramEnv[Env], ProgramError, List[User]] =
     allUsers
       .mapError(ProgramError.UserError)
 
-  def getUsersCreatedBefore[Env: Tag](
+  def getUsersCreatedBefore[Env: Tagged](
       instant: Instant
   ): ZIO[ProgramEnv[Env], ProgramError, List[User]] =
     allUsers

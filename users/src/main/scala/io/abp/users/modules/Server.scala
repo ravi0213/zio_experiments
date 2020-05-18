@@ -20,7 +20,7 @@ import zio.telemetry.opentracing.OpenTracing
 object Server {
   type AppTaskEnv[Env] = Env with UserService[Env] with OpenTracing
 
-  def serve[Env: Tag](
+  def serve[Env: Tagged](
       apiConfig: ApiConfig
   ): RIO[ZEnv with AppTaskEnv[Env], Unit] = {
     type AppTask[A] = RIO[AppTaskEnv[Env], A]

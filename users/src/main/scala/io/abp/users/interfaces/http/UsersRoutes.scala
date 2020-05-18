@@ -17,7 +17,7 @@ import zio._
 import zio.interop.catz._
 import zio.telemetry.opentracing.OpenTracing
 
-class UsersRoutes[Env: Tag](implicit tracer: Tracer[AppTask[Env, ?]]) {
+class UsersRoutes[Env: Tagged](implicit tracer: Tracer[AppTask[Env, ?]]) {
   //TODO: PR in profunktor/tracer repo for scala 2.13
   val ZIOHttp4sTracerDsl = new Http4sTracerDsl[AppTask[Env, ?]] {
     override val liftG: FunctionK[AppTask[Env, ?], AppTask[Env, ?]] = FunctionK.id[AppTask[Env, ?]]
@@ -66,7 +66,7 @@ class UsersRoutes[Env: Tag](implicit tracer: Tracer[AppTask[Env, ?]]) {
 }
 
 object UsersRoutes {
-  def apply[Env: Tag](implicit tracer: Tracer[AppTask[Env, ?]]): UsersRoutes[Env] =
+  def apply[Env: Tagged](implicit tracer: Tracer[AppTask[Env, ?]]): UsersRoutes[Env] =
     new UsersRoutes[Env]
 
   type AppTask[Env, A] = RIO[Env with UserService[Env] with OpenTracing, A]
