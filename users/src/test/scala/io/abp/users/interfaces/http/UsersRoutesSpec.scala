@@ -34,7 +34,7 @@ object UsersRoutesSpec extends DefaultRunnableSpec {
   def makeUserService(input: Ref[Map[User.Id, User]]) = UserService.inMemory(input)
 
   implicit val tracer = Tracer.create[AppTask]()
-  val userRoutes: HttpRoutes[AppTask] = UsersRoutes[Env].v1Routes
+  val userRoutes: HttpRoutes[AppTask] = UsersRoutes[Env].prefixedRoutes
   implicit val userIdDecoder: Decoder[User.Id] = deriveDecoder[User.Id]
   implicit val userDecoder: Decoder[User] = deriveDecoder[User]
   implicit val allUsersResponseDecoder: Decoder[AllUsersResponse] = deriveDecoder[AllUsersResponse]
