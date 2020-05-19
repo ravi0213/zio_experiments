@@ -9,9 +9,11 @@ object Dependencies {
     val jaeger = "1.2.0"
     val logback = "1.2.3"
     val opentracing = "0.33.0"
-    val zio = "1.0.0-RC18-2"
-    val zioOpenTracing = "0.3.0"
-    val zipkin = "2.14.0"
+    val zio = "1.0.0-RC19"
+    val zioOpenTracing = "0.4.0"
+    val zioInteropCats = "2.0.0.0-RC14"
+    val zioLogging = "0.2.9"
+    val zipkin = "2.15.0"
 
     val scalaTest = "3.1.1"
 
@@ -41,9 +43,9 @@ object Dependencies {
 
   lazy val zio = Seq(
     "dev.zio" %% "zio" % Versions.zio,
-    "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC13",
-    "dev.zio" %% "zio-logging" % "0.2.8",
-    "dev.zio" %% "zio-logging-slf4j" % "0.2.8",
+    "dev.zio" %% "zio-interop-cats" % Versions.zioInteropCats,
+    "dev.zio" %% "zio-logging" % Versions.zioLogging,
+    "dev.zio" %% "zio-logging-slf4j" % Versions.zioLogging,
     "dev.zio" %% "zio-test" % Versions.zio % Test,
     "dev.zio" %% "zio-test-sbt" % Versions.zio % Test
   )
